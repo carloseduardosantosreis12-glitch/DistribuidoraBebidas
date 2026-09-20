@@ -1,6 +1,5 @@
 package br.com.distribuidora;
 
-import br.com.distribuidora.model.Bebida;
 import br.com.distribuidora.view.DashboardView;
 import javafx.application.Application;
 import javafx.scene.Scene;
@@ -10,41 +9,20 @@ public class Main extends Application {
 
     @Override
     public void start(Stage stage) {
-    	
-    	Bebida bebida = new Bebida(
-    	        1,
-    	        "Coca-Cola",
-    	        "Refrigerante",
-    	        10.50,
-    	        25
-    	);
+        DashboardView dashboard = new DashboardView(25, 12, 8);
+        Scene scene = new Scene(dashboard.getRoot(), 1280, 720);
 
-    	System.out.println(bebida.descricao());
-    	
-    	DashboardView dashboard = new DashboardView();
-    	Scene scene = new Scene(
-    			dashboard.getRoot(),
-    			1280,
-    			 720
-    			);
-    	stage.setScene(scene);
-    	
-    	scene.getStylesheets().add(
-    			getClass().getResource("/css/style.css").toExternalForm()
-    			);
-    	
+        var cssUrl = getClass().getResource("/css/style.css");
+        if (cssUrl != null) {
+            scene.getStylesheets().add(cssUrl.toExternalForm());
+        }
+
+        stage.setScene(scene);
         stage.setTitle("Distribuidora de Bebidas");
         stage.show();
-        
-        
     }
 
     public static void main(String[] args) {
         launch(args);
-    
-    
     }
-    
-    
-    
 }

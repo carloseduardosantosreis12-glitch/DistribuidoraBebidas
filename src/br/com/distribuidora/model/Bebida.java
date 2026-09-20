@@ -1,17 +1,19 @@
 package br.com.distribuidora.model;
 
+import java.math.BigDecimal;
+
 public class Bebida {
 
     private int id;
     private String nome;
     private String categoria;
-    private double preco;
+    private BigDecimal preco;
     private int estoque;
 
     public Bebida() {
     }
 
-    public Bebida(int id, String nome, String categoria, double preco, int estoque) {
+    public Bebida(int id, String nome, String categoria, BigDecimal preco, int estoque) {
         this.id = id;
         this.nome = nome;
         this.categoria = categoria;
@@ -43,11 +45,11 @@ public class Bebida {
         this.categoria = categoria;
     }
 
-    public double getPreco() {
+    public BigDecimal getPreco() {
         return preco;
     }
 
-    public void setPreco(double preco) {
+    public void setPreco(BigDecimal preco) {
         this.preco = preco;
     }
 
@@ -58,7 +60,7 @@ public class Bebida {
     public void setEstoque(int estoque) {
         this.estoque = estoque;
     }
-    
+
     public String descricao() {
         return nome + " - " + categoria + " - R$ " + preco + " - Estoque: " + estoque;
     }
