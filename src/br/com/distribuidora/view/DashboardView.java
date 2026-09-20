@@ -1,5 +1,8 @@
 package br.com.distribuidora.view;
 
+import br.com.distribuidora.model.Bebida;
+import br.com.distribuidora.repository.ConfiguracaoStore;
+import br.com.distribuidora.repository.EstoqueRepository;
 import javafx.geometry.Insets;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -9,11 +12,16 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
+import java.util.List;
+
 public class DashboardView {
 
     private BorderPane root;
+    private final EstoqueRepository estoque = EstoqueRepository.getInstance();
+    private final ConfiguracaoStore config = ConfiguracaoStore.getInstance();
+    private Label logo;
 
-    public DashboardView(int totalEstoque, int totalVendas, int totalProdutos) {
+    public DashboardView() {
 
         root = new BorderPane();
         root.setId("root");
@@ -30,9 +38,8 @@ public class DashboardView {
 
         root.setLeft(menu);
 
-        Label logo = new Label("BebMais");
+        logo = new Label(config.getNomeEmpresa());
         logo.setId("logo");
-
         menu.getChildren().add(logo);
 
         Button inicio = new Button("Início");
@@ -65,14 +72,55 @@ public class DashboardView {
         configuracoes.getStyleClass().add("menu-botao");
         menu.getChildren().add(configuracoes);
 
+        root.setCenter(criarConteudoDashboard());
+
         // =========================
-        // CONTEÚDO PRINCIPAL
+        // NAVEGAÇÃO
         // =========================
+
+        inicio.setOnAction(event -> root.setCenter(criarConteudoDashboard()));
+
+        cadastrar.setOnAction(event -> {
+            CadastroBebidaView cadastroView = new CadastroBebidaView();
+            root.setCenter(cadastroView.getRoot());
+        });
+
+        relatorio.setOnAction(event -> {
+            RelatorioView relatorioView = new RelatorioView();
+            root.setCenter(relatorioView.getRoot());
+        });
+
+        configuracoes.setOnAction(event -> {
+            ConfiguracaoView configuracaoView = new ConfiguracaoView(() -> {
+                logo.setText(config.getNomeEmpresa());
+                root.setCenter(criarConteudoDashboard());
+            });
+            root.setCenter(configuracaoView.getRoot());
+        });
+
+        // =========================
+        // CSS
+        // =========================
+
+        String css = getClass()
+                .getResource("/css/style.css")
+                .toExternalForm();
+
+        root.getStylesheets().add(css);
+    }
+
+    // =========================
+    // CONTEÚDO DO DASHBOARD
+    // =========================
+
+    private VBox criarConteudoDashboard() {
 
         Label titulo = new Label("Painel de Controle");
         titulo.setId("titulo");
 
-        Label subtitulo = new Label("Visão geral do estoque da distribuidora");
+        Label subtitulo = new Label(
+                "Visão geral do estoque da " + config.getNomeEmpresa()
+        );
         subtitulo.getStyleClass().add("dashboard-subtitulo");
 
         VBox cabecalhoDashboard = new VBox(4);
@@ -87,32 +135,34 @@ public class DashboardView {
         // CARDS
         // =========================
 
+        List<Bebida> baixo = estoque.estoqueBaixo(config.getLimiteEstoqueBaixo());
+
         HBox cards = new HBox(18);
         cards.setPrefHeight(150);
         cards.setFillHeight(true);
 
         StackPane cardProdutos = criarCard(
                 "Bebidas cadastradas",
-                String.valueOf(totalProdutos),
+                String.valueOf(estoque.totalProdutos()),
                 "Produtos cadastrados"
         );
 
         StackPane cardEstoque = criarCard(
                 "Unidades em estoque",
-                String.valueOf(totalEstoque),
+                String.valueOf(estoque.totalUnidades()),
                 "Total disponível"
         );
 
         StackPane cardBaixo = criarCard(
                 "Estoque baixo",
-                "3",
+                String.valueOf(baixo.size()),
                 "Produtos para repor"
         );
 
         StackPane cardValor = criarCard(
-                "Vendas",
-                String.valueOf(totalVendas),
-                "Vendas realizadas"
+                "Valor do estoque",
+                config.getMoeda() + " " + String.format("%.2f", estoque.valorTotalEstoque()),
+                "Preço de custo + margem"
         );
 
         cardProdutos.getStyleClass().add("card-azul");
@@ -138,145 +188,51 @@ public class DashboardView {
 
         VBox listaEstoque = new VBox(10);
 
-        HBox item1 = new HBox(20);
-        item1.getStyleClass().add("item-estoque");
+        if (baixo.isEmpty()) {
+            Label vazio = new Label(
+                    "Nenhum produto abaixo do limite definido."
+            );
+            vazio.getStyleClass().add("item-estoque");
+            listaEstoque.getChildren().add(vazio);
+        } else {
+            for (Bebida b : baixo) {
+                HBox item = new HBox(20);
+                item.getStyleClass().add("item-estoque");
 
-        Label produto1 = new Label("Coca-Cola");
-        Label quantidade1 = new Label("5 unidades");
+                Label produto = new Label(b.getNome() + " (" + b.getMarca() + ")");
+                Label quantidade = new Label(b.getEstoque() + " unidades");
 
-        HBox.setHgrow(produto1, Priority.ALWAYS);
+                HBox.setHgrow(produto, Priority.ALWAYS);
 
-        item1.getChildren().addAll(
-                produto1,
-                quantidade1
-        );
-
-        HBox item2 = new HBox(20);
-        item2.getStyleClass().add("item-estoque");
-
-        Label produto2 = new Label("Guaraná Antarctica");
-        Label quantidade2 = new Label("3 unidades");
-
-        HBox.setHgrow(produto2, Priority.ALWAYS);
-
-        item2.getChildren().addAll(
-                produto2,
-                quantidade2
-        );
-
-        HBox item3 = new HBox(20);
-        item3.getStyleClass().add("item-estoque");
-
-        Label produto3 = new Label("Fanta Laranja");
-        Label quantidade3 = new Label("2 unidades");
-
-        HBox.setHgrow(produto3, Priority.ALWAYS);
-
-        item3.getChildren().addAll(
-                produto3,
-                quantidade3
-        );
-
-        listaEstoque.getChildren().addAll(
-                item1,
-                item2,
-                item3
-        );
+                item.getChildren().addAll(produto, quantidade);
+                listaEstoque.getChildren().add(item);
+            }
+        }
 
         conteudo.getChildren().add(tituloEstoque);
         conteudo.getChildren().add(listaEstoque);
 
         // =========================
-        // VENDAS RECENTES
+        // RESUMO DE VENDAS
         // =========================
 
-        Label tituloVendas = new Label("Vendas recentes");
+        Label tituloVendas = new Label("Resumo de vendas");
         tituloVendas.getStyleClass().add("secao-titulo");
 
-        VBox listaVendas = new VBox(8);
-        listaVendas.getStyleClass().add("lista-vendas");
+        HBox resumoVendas = new HBox(20);
+        resumoVendas.getStyleClass().add("lista-vendas");
 
-        HBox venda1 = new HBox(20);
-        venda1.getStyleClass().add("item-venda");
+        Label rotuloVendas = new Label("Vendas registradas");
+        Label valorVendas = new Label(String.valueOf(estoque.totalVendas()));
 
-        Label cliente1 = new Label("Cliente: João Silva");
-        Label valor1 = new Label("R$ 150,00");
+        HBox.setHgrow(rotuloVendas, Priority.ALWAYS);
 
-        HBox.setHgrow(cliente1, Priority.ALWAYS);
-
-        venda1.getChildren().addAll(
-                cliente1,
-                valor1
-        );
-
-        HBox venda2 = new HBox(20);
-        venda2.getStyleClass().add("item-venda");
-
-        Label cliente2 = new Label("Cliente: Mercado Central");
-        Label valor2 = new Label("R$ 320,00");
-
-        HBox.setHgrow(cliente2, Priority.ALWAYS);
-
-        venda2.getChildren().addAll(
-                cliente2,
-                valor2
-        );
-
-        HBox venda3 = new HBox(20);
-        venda3.getStyleClass().add("item-venda");
-
-        Label cliente3 = new Label("Cliente: Bar do Zé");
-        Label valor3 = new Label("R$ 85,00");
-
-        HBox.setHgrow(cliente3, Priority.ALWAYS);
-
-        venda3.getChildren().addAll(
-                cliente3,
-                valor3
-        );
-
-        listaVendas.getChildren().addAll(
-                venda1,
-                venda2,
-                venda3
-        );
+        resumoVendas.getChildren().addAll(rotuloVendas, valorVendas);
 
         conteudo.getChildren().add(tituloVendas);
-        conteudo.getChildren().add(listaVendas);
+        conteudo.getChildren().add(resumoVendas);
 
-        // =========================
-        // CENTRO DO DASHBOARD
-        // =========================
-
-        root.setCenter(conteudo);
-        
-        
-     // =========================
-     // NAVEGAÇÃO
-     // =========================
-
-     // Voltar para o Dashboard
-     inicio.setOnAction(event -> {
-         root.setCenter(conteudo);
-     });
-
-     // Abrir tela de cadastro
-     cadastrar.setOnAction(event -> {
-         CadastroBebidaView cadastroView = new CadastroBebidaView();
-         root.setCenter(cadastroView.getRoot());
-     });
-        
-        
-
-        // =========================
-        // CSS
-        // =========================
-
-        String css = getClass()
-                .getResource("/css/style.css")
-                .toExternalForm();
-
-        root.getStylesheets().add(css);
+        return conteudo;
     }
 
     // =========================

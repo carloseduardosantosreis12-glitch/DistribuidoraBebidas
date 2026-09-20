@@ -1,5 +1,8 @@
 package br.com.distribuidora.view;
 
+import br.com.distribuidora.model.Bebida;
+import br.com.distribuidora.repository.EstoqueRepository;
+import java.math.BigDecimal;
 import javafx.geometry.Insets;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
@@ -223,6 +226,10 @@ public class CadastroBebidaView {
         Button cadastrar = new Button("Cadastrar Bebida");
         cadastrar.getStyleClass().add("botao-principal");
 
+        Label feedback = new Label();
+        feedback.getStyleClass().add("cadastro-subtitulo");
+        feedback.setVisible(false);
+
         HBox botoes = new HBox(12);
         botoes.getStyleClass().add("cadastro-botoes");
 
@@ -243,6 +250,60 @@ public class CadastroBebidaView {
             campoPreco.clear();
             campoQuantidade.clear();
             campoValidade.setValue(null);
+            feedback.setVisible(false);
+
+        });
+
+        // =========================
+        // CADASTRAR BEBIDA
+        // =========================
+
+        cadastrar.setOnAction(event -> {
+
+            String nome = campoNome.getText().trim();
+            String marca = campoMarca.getText().trim();
+            String categoria = campoCategoria.getValue();
+            String precoTexto = campoPreco.getText().trim();
+            String quantidadeTexto = campoQuantidade.getText().trim();
+
+            if (nome.isEmpty() || marca.isEmpty() || categoria == null
+                    || precoTexto.isEmpty() || quantidadeTexto.isEmpty()) {
+                mostrarFeedback(feedback, "Preencha todos os campos.", false);
+                return;
+            }
+
+            try {
+                BigDecimal preco = new BigDecimal(
+                        precoTexto.replace(",", ".")
+                );
+                int quantidade = Integer.parseInt(quantidadeTexto);
+
+                if (preco.signum() < 0 || quantidade < 0) {
+                    throw new NumberFormatException();
+                }
+
+                Bebida bebida = new Bebida(
+                        0, nome, marca, categoria, preco, quantidade
+                );
+
+                if (campoValidade.getValue() != null) {
+                    bebida.setValidade(campoValidade.getValue());
+                }
+
+                EstoqueRepository.getInstance().adicionar(bebida);
+
+                campoNome.clear();
+                campoMarca.clear();
+                campoCategoria.getSelectionModel().clearSelection();
+                campoPreco.clear();
+                campoQuantidade.clear();
+                campoValidade.setValue(null);
+
+                mostrarFeedback(feedback, "Bebida cadastrada com sucesso!", true);
+            } catch (NumberFormatException e) {
+                mostrarFeedback(feedback,
+                        "Preço deve ser um número e quantidade um inteiro válido.", false);
+            }
 
         });
 
@@ -276,6 +337,12 @@ public class CadastroBebidaView {
         );
 
         return grupo;
+    }
+
+    private void mostrarFeedback(Label feedback, String mensagem, boolean sucesso) {
+        feedback.setText(mensagem);
+        feedback.setStyle(sucesso ? "" : "-fx-text-fill: #dc2626;");
+        feedback.setVisible(true);
     }
 
     public BorderPane getRoot() {

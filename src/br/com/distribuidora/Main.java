@@ -9,7 +9,7 @@ public class Main extends Application {
 
     @Override
     public void start(Stage stage) {
-        DashboardView dashboard = new DashboardView(25, 12, 8);
+        DashboardView dashboard = new DashboardView();
         Scene scene = new Scene(dashboard.getRoot(), 1280, 720);
 
         var cssUrl = getClass().getResource("/css/style.css");
