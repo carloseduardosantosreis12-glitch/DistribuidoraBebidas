@@ -3,277 +3,117 @@ package br.com.distribuidora.view;
 import br.com.distribuidora.model.Bebida;
 import br.com.distribuidora.repository.ConfiguracaoStore;
 import br.com.distribuidora.repository.EstoqueRepository;
-import javafx.geometry.Insets;
-import javafx.scene.control.Button;
+import br.com.distribuidora.view.components.PageHeader;
+import br.com.distribuidora.view.components.StatCard;
+import br.com.distribuidora.view.components.StatusBadge;
+import java.math.BigDecimal;
+import java.util.List;
+import javafx.geometry.Pos;
 import javafx.scene.control.Label;
-import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
-import javafx.scene.layout.StackPane;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
-
-import java.util.List;
 
 public class DashboardView {
 
-    private BorderPane root;
     private final EstoqueRepository estoque = EstoqueRepository.getInstance();
     private final ConfiguracaoStore config = ConfiguracaoStore.getInstance();
-    private Label logo;
 
-    public DashboardView() {
-
-        root = new BorderPane();
-        root.setId("root");
-
-        // =========================
-        // MENU LATERAL
-        // =========================
-
-        VBox menu = new VBox(10);
-
-        menu.setPrefWidth(230);
-        menu.setPadding(new Insets(20));
-        menu.setId("menu-lateral");
-
-        root.setLeft(menu);
-
-        logo = new Label(config.getNomeEmpresa());
-        logo.setId("logo");
-        menu.getChildren().add(logo);
-
-        Button inicio = new Button("Início");
-        inicio.setMaxWidth(Double.MAX_VALUE);
-        inicio.getStyleClass().add("menu-ativo");
-        menu.getChildren().add(inicio);
-
-        Button bebidas = new Button("Bebidas");
-        bebidas.setMaxWidth(Double.MAX_VALUE);
-        bebidas.getStyleClass().add("menu-botao");
-        menu.getChildren().add(bebidas);
-
-        Button cadastrar = new Button("Cadastrar Bebida");
-        cadastrar.setMaxWidth(Double.MAX_VALUE);
-        cadastrar.getStyleClass().add("menu-botao");
-        menu.getChildren().add(cadastrar);
-
-        Button vendas = new Button("Vendas");
-        vendas.setMaxWidth(Double.MAX_VALUE);
-        vendas.getStyleClass().add("menu-botao");
-        menu.getChildren().add(vendas);
-
-        Button relatorio = new Button("Relatórios");
-        relatorio.setMaxWidth(Double.MAX_VALUE);
-        relatorio.getStyleClass().add("menu-botao");
-        menu.getChildren().add(relatorio);
-
-        Button configuracoes = new Button("Configurações");
-        configuracoes.setMaxWidth(Double.MAX_VALUE);
-        configuracoes.getStyleClass().add("menu-botao");
-        menu.getChildren().add(configuracoes);
-
-        root.setCenter(criarConteudoDashboard());
-
-        // =========================
-        // NAVEGAÇÃO
-        // =========================
-
-        inicio.setOnAction(event -> root.setCenter(criarConteudoDashboard()));
-
-        cadastrar.setOnAction(event -> {
-            CadastroBebidaView cadastroView = new CadastroBebidaView();
-            root.setCenter(cadastroView.getRoot());
-        });
-
-        relatorio.setOnAction(event -> {
-            RelatorioView relatorioView = new RelatorioView();
-            root.setCenter(relatorioView.getRoot());
-        });
-
-        configuracoes.setOnAction(event -> {
-            ConfiguracaoView configuracaoView = new ConfiguracaoView(() -> {
-                logo.setText(config.getNomeEmpresa());
-                root.setCenter(criarConteudoDashboard());
-            });
-            root.setCenter(configuracaoView.getRoot());
-        });
-
-        // =========================
-        // CSS
-        // =========================
-
-        String css = getClass()
-                .getResource("/css/style.css")
-                .toExternalForm();
-
-        root.getStylesheets().add(css);
-    }
-
-    // =========================
-    // CONTEÚDO DO DASHBOARD
-    // =========================
-
-    private VBox criarConteudoDashboard() {
-
-        Label titulo = new Label("Painel de Controle");
-        titulo.setId("titulo");
-
-        Label subtitulo = new Label(
+    public VBox getRoot() {
+        PageHeader cabecalho = new PageHeader(
+                "Painel de controle",
                 "Visão geral do estoque da " + config.getNomeEmpresa()
         );
-        subtitulo.getStyleClass().add("dashboard-subtitulo");
 
-        VBox cabecalhoDashboard = new VBox(4);
-        cabecalhoDashboard.getChildren().addAll(titulo, subtitulo);
+        int limite = config.getLimiteEstoqueBaixo();
+        List<Bebida> baixo = estoque.estoqueBaixo(limite);
 
-        VBox conteudo = new VBox(25);
-        conteudo.setPadding(new Insets(35));
+        HBox cards = new HBox(16,
+                new StatCard("Bebidas cadastradas",
+                        String.valueOf(estoque.totalProdutos())),
+                new StatCard("Unidades em estoque",
+                        String.valueOf(estoque.totalUnidades())),
+                new StatCard("Alertas de estoque",
+                        String.valueOf(baixo.size()), true),
+                new StatCard("Valor do estoque",
+                        formatarMoeda(estoque.valorTotalEstoque())));
+        cards.getChildren().forEach(no -> {
+            HBox.setHgrow(no, Priority.ALWAYS);
+            ((Region) no).setMaxWidth(Double.MAX_VALUE);
+        });
 
-        conteudo.getChildren().add(cabecalhoDashboard);
+        VBox raiz = new VBox(24,
+                cabecalho,
+                cards,
+                secaoEstoqueBaixo(baixo, limite),
+                secaoResumoVendas());
+        raiz.setMaxWidth(Double.MAX_VALUE);
+        return raiz;
+    }
 
-        // =========================
-        // CARDS
-        // =========================
+    private VBox secaoEstoqueBaixo(List<Bebida> baixo, int limite) {
+        Label titulo = new Label("Estoque baixo");
+        titulo.getStyleClass().add("section-title");
 
-        List<Bebida> baixo = estoque.estoqueBaixo(config.getLimiteEstoqueBaixo());
-
-        HBox cards = new HBox(18);
-        cards.setPrefHeight(150);
-        cards.setFillHeight(true);
-
-        StackPane cardProdutos = criarCard(
-                "Bebidas cadastradas",
-                String.valueOf(estoque.totalProdutos()),
-                "Produtos cadastrados"
-        );
-
-        StackPane cardEstoque = criarCard(
-                "Unidades em estoque",
-                String.valueOf(estoque.totalUnidades()),
-                "Total disponível"
-        );
-
-        StackPane cardBaixo = criarCard(
-                "Estoque baixo",
-                String.valueOf(baixo.size()),
-                "Produtos para repor"
-        );
-
-        StackPane cardValor = criarCard(
-                "Valor do estoque",
-                config.getMoeda() + " " + String.format("%.2f", estoque.valorTotalEstoque()),
-                "Preço de custo + margem"
-        );
-
-        cardProdutos.getStyleClass().add("card-azul");
-        cardEstoque.getStyleClass().add("card-verde");
-        cardBaixo.getStyleClass().add("card-laranja");
-        cardValor.getStyleClass().add("card-roxo");
-
-        cards.getChildren().addAll(
-                cardProdutos,
-                cardEstoque,
-                cardBaixo,
-                cardValor
-        );
-
-        conteudo.getChildren().add(cards);
-
-        // =========================
-        // ESTOQUE BAIXO
-        // =========================
-
-        Label tituloEstoque = new Label("Estoque baixo");
-        tituloEstoque.getStyleClass().add("secao-titulo");
-
-        VBox listaEstoque = new VBox(10);
+        VBox lista = new VBox();
+        lista.getStyleClass().add("panel");
 
         if (baixo.isEmpty()) {
-            Label vazio = new Label(
-                    "Nenhum produto abaixo do limite definido."
-            );
-            vazio.getStyleClass().add("item-estoque");
-            listaEstoque.getChildren().add(vazio);
+            Label vazio = new Label("Nenhum produto abaixo do limite definido.");
+            vazio.getStyleClass().add("text-muted");
+            lista.getChildren().add(vazio);
         } else {
             for (Bebida b : baixo) {
-                HBox item = new HBox(20);
-                item.getStyleClass().add("item-estoque");
-
-                Label produto = new Label(b.getNome() + " (" + b.getMarca() + ")");
-                Label quantidade = new Label(b.getEstoque() + " unidades");
-
-                HBox.setHgrow(produto, Priority.ALWAYS);
-
-                item.getChildren().addAll(produto, quantidade);
-                listaEstoque.getChildren().add(item);
+                lista.getChildren().add(linhaProduto(b, limite));
             }
         }
 
-        conteudo.getChildren().add(tituloEstoque);
-        conteudo.getChildren().add(listaEstoque);
-
-        // =========================
-        // RESUMO DE VENDAS
-        // =========================
-
-        Label tituloVendas = new Label("Resumo de vendas");
-        tituloVendas.getStyleClass().add("secao-titulo");
-
-        HBox resumoVendas = new HBox(20);
-        resumoVendas.getStyleClass().add("lista-vendas");
-
-        Label rotuloVendas = new Label("Vendas registradas");
-        Label valorVendas = new Label(String.valueOf(estoque.totalVendas()));
-
-        HBox.setHgrow(rotuloVendas, Priority.ALWAYS);
-
-        resumoVendas.getChildren().addAll(rotuloVendas, valorVendas);
-
-        conteudo.getChildren().add(tituloVendas);
-        conteudo.getChildren().add(resumoVendas);
-
-        return conteudo;
+        return new VBox(10, titulo, lista);
     }
 
-    // =========================
-    // MÉTODO PARA CRIAR CARDS
-    // =========================
+    private HBox linhaProduto(Bebida b, int limite) {
+        Label produto = new Label(b.getNome());
+        produto.getStyleClass().add("row-title");
 
-    private StackPane criarCard(
-            String titulo,
-            String valor,
-            String descricao) {
+        Label detalhe = new Label(b.getMarca() + " · " + b.getCategoria());
+        detalhe.getStyleClass().add("text-muted");
 
-        StackPane card = new StackPane();
+        HBox nome = new HBox(8, produto, detalhe);
+        nome.setAlignment(Pos.CENTER_LEFT);
+        HBox.setHgrow(nome, Priority.ALWAYS);
 
-        card.setPrefSize(200, 120);
-        card.getStyleClass().add("card");
+        Label quantidade = new Label(b.getEstoque() + " unidades");
+        quantidade.getStyleClass().add("text-muted");
 
-        HBox.setHgrow(card, Priority.ALWAYS);
+        StatusBadge badge = StatusBadge.paraEstoque(b.getEstoque(), limite).orElseThrow();
 
-        Label labelTitulo = new Label(titulo);
-        labelTitulo.getStyleClass().add("card-titulo");
-
-        Label labelValor = new Label(valor);
-        labelValor.getStyleClass().add("card-valor");
-
-        Label labelDescricao = new Label(descricao);
-        labelDescricao.getStyleClass().add("card-descricao");
-
-        VBox conteudo = new VBox(5);
-
-        conteudo.getChildren().addAll(
-                labelTitulo,
-                labelValor,
-                labelDescricao
-        );
-
-        card.getChildren().add(conteudo);
-
-        return card;
+        HBox linha = new HBox(12, nome, quantidade, badge);
+        linha.setAlignment(Pos.CENTER_LEFT);
+        linha.getStyleClass().add("panel-row");
+        return linha;
     }
 
-    public BorderPane getRoot() {
-        return root;
+    private VBox secaoResumoVendas() {
+        Label titulo = new Label("Resumo de vendas");
+        titulo.getStyleClass().add("section-title");
+
+        Label rotulo = new Label("Vendas registradas");
+        rotulo.getStyleClass().add("row-title");
+
+        Region espaco = new Region();
+        HBox.setHgrow(espaco, Priority.ALWAYS);
+
+        Label valor = new Label(String.valueOf(estoque.totalVendas()));
+        valor.getStyleClass().add("row-valor");
+
+        HBox linha = new HBox(12, rotulo, espaco, valor);
+        linha.getStyleClass().addAll("panel", "panel-row");
+
+        return new VBox(10, titulo, linha);
+    }
+
+    private String formatarMoeda(BigDecimal valor) {
+        return config.getMoeda() + " " + String.format("%.2f", valor).replace('.', ',');
     }
 }

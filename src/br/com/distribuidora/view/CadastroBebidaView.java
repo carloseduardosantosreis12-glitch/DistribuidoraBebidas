@@ -2,14 +2,15 @@ package br.com.distribuidora.view;
 
 import br.com.distribuidora.model.Bebida;
 import br.com.distribuidora.repository.EstoqueRepository;
+import br.com.distribuidora.view.components.PageHeader;
 import java.math.BigDecimal;
-import javafx.geometry.Insets;
+import java.util.function.Consumer;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
-import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
@@ -18,64 +19,31 @@ import javafx.scene.layout.VBox;
 
 public class CadastroBebidaView {
 
-    private BorderPane root;
+    private final Consumer<String> notificar;
 
-    public CadastroBebidaView() {
+    public CadastroBebidaView(Consumer<String> notificar) {
+        this.notificar = notificar;
+    }
 
-        root = new BorderPane();
-        root.getStyleClass().add("cadastro-root");
-
-        // =========================
-        // CONTEÚDO PRINCIPAL
-        // =========================
-
-        VBox pagina = new VBox(25);
-        pagina.setPadding(new Insets(35));
-
-        // =========================
-        // CABEÇALHO
-        // =========================
-
-        Label titulo = new Label("Cadastrar Bebida");
-        titulo.getStyleClass().add("cadastro-titulo");
-
-        Label subtitulo = new Label(
+    public VBox getRoot() {
+        PageHeader cabecalho = new PageHeader(
+                "Cadastrar Bebida",
                 "Adicione uma nova bebida ao estoque da distribuidora"
         );
-        subtitulo.getStyleClass().add("cadastro-subtitulo");
-
-        VBox cabecalho = new VBox(5);
-        cabecalho.getChildren().addAll(titulo, subtitulo);
-
-        // =========================
-        // CARD DO FORMULÁRIO
-        // =========================
-
-        VBox cardFormulario = new VBox(22);
-        cardFormulario.getStyleClass().add("cadastro-card");
 
         Label tituloFormulario = new Label("Informações da Bebida");
-        tituloFormulario.getStyleClass().add("formulario-titulo");
+        tituloFormulario.getStyleClass().add("section-title");
 
         Label descricaoFormulario = new Label(
                 "Preencha os dados abaixo para cadastrar o produto."
         );
-        descricaoFormulario.getStyleClass().add("formulario-descricao");
+        descricaoFormulario.getStyleClass().add("field-help");
 
-        VBox topoFormulario = new VBox(4);
-        topoFormulario.getChildren().addAll(
-                tituloFormulario,
-                descricaoFormulario
-        );
-
-        // =========================
-        // GRID
-        // =========================
+        VBox topoFormulario = new VBox(4, tituloFormulario, descricaoFormulario);
 
         GridPane formulario = new GridPane();
-
-        formulario.setHgap(25);
-        formulario.setVgap(20);
+        formulario.setHgap(24);
+        formulario.setVgap(16);
 
         ColumnConstraints coluna1 = new ColumnConstraints();
         coluna1.setPercentWidth(50);
@@ -85,54 +53,17 @@ public class CadastroBebidaView {
         coluna2.setPercentWidth(50);
         coluna2.setHgrow(Priority.ALWAYS);
 
-        formulario.getColumnConstraints().addAll(
-                coluna1,
-                coluna2
-        );
-
-        // =========================
-        // NOME
-        // =========================
-
-        Label labelNome = new Label("Nome da bebida");
-        labelNome.getStyleClass().add("campo-label");
+        formulario.getColumnConstraints().addAll(coluna1, coluna2);
 
         TextField campoNome = new TextField();
         campoNome.setPromptText("Ex.: Coca-Cola 2L");
-        campoNome.getStyleClass().add("campo-formulario");
         campoNome.setMaxWidth(Double.MAX_VALUE);
-
-        VBox grupoNome = criarGrupoCampo(
-                labelNome,
-                campoNome
-        );
-
-        // =========================
-        // MARCA
-        // =========================
-
-        Label labelMarca = new Label("Marca");
-        labelMarca.getStyleClass().add("campo-label");
 
         TextField campoMarca = new TextField();
         campoMarca.setPromptText("Ex.: Coca-Cola");
-        campoMarca.getStyleClass().add("campo-formulario");
         campoMarca.setMaxWidth(Double.MAX_VALUE);
 
-        VBox grupoMarca = criarGrupoCampo(
-                labelMarca,
-                campoMarca
-        );
-
-        // =========================
-        // CATEGORIA
-        // =========================
-
-        Label labelCategoria = new Label("Categoria");
-        labelCategoria.getStyleClass().add("campo-label");
-
         ComboBox<String> campoCategoria = new ComboBox<>();
-
         campoCategoria.getItems().addAll(
                 "Refrigerante",
                 "Água",
@@ -143,123 +74,53 @@ public class CadastroBebidaView {
                 "Destilado",
                 "Outro"
         );
-
         campoCategoria.setPromptText("Selecione uma categoria");
-        campoCategoria.getStyleClass().add("campo-formulario");
         campoCategoria.setMaxWidth(Double.MAX_VALUE);
-
-        VBox grupoCategoria = criarGrupoCampo(
-                labelCategoria,
-                campoCategoria
-        );
-
-        // =========================
-        // PREÇO
-        // =========================
-
-        Label labelPreco = new Label("Preço");
-        labelPreco.getStyleClass().add("campo-label");
 
         TextField campoPreco = new TextField();
         campoPreco.setPromptText("Ex.: 9,90");
-        campoPreco.getStyleClass().add("campo-formulario");
         campoPreco.setMaxWidth(Double.MAX_VALUE);
-
-        VBox grupoPreco = criarGrupoCampo(
-                labelPreco,
-                campoPreco
-        );
-
-        // =========================
-        // QUANTIDADE
-        // =========================
-
-        Label labelQuantidade = new Label("Quantidade em estoque");
-        labelQuantidade.getStyleClass().add("campo-label");
 
         TextField campoQuantidade = new TextField();
         campoQuantidade.setPromptText("Ex.: 120");
-        campoQuantidade.getStyleClass().add("campo-formulario");
         campoQuantidade.setMaxWidth(Double.MAX_VALUE);
 
-        VBox grupoQuantidade = criarGrupoCampo(
-                labelQuantidade,
-                campoQuantidade
-        );
-
-        // =========================
-        // VALIDADE
-        // =========================
-
-        Label labelValidade = new Label("Data de validade");
-        labelValidade.getStyleClass().add("campo-label");
-
         DatePicker campoValidade = new DatePicker();
-        campoValidade.getStyleClass().add("campo-formulario");
         campoValidade.setMaxWidth(Double.MAX_VALUE);
 
-        VBox grupoValidade = criarGrupoCampo(
-                labelValidade,
-                campoValidade
-        );
+        formulario.add(criarGrupoCampo(new Label("Nome da bebida"), campoNome), 0, 0);
+        formulario.add(criarGrupoCampo(new Label("Marca"), campoMarca), 1, 0);
 
-        // =========================
-        // POSIÇÕES
-        // =========================
+        formulario.add(criarGrupoCampo(new Label("Categoria"), campoCategoria), 0, 1);
+        formulario.add(criarGrupoCampo(new Label("Preço"), campoPreco), 1, 1);
 
-        formulario.add(grupoNome, 0, 0);
-        formulario.add(grupoMarca, 1, 0);
-
-        formulario.add(grupoCategoria, 0, 1);
-        formulario.add(grupoPreco, 1, 1);
-
-        formulario.add(grupoQuantidade, 0, 2);
-        formulario.add(grupoValidade, 1, 2);
-
-        // =========================
-        // BOTÕES
-        // =========================
-
-        Button limpar = new Button("Limpar");
-        limpar.getStyleClass().add("botao-secundario");
+        formulario.add(criarGrupoCampo(
+                new Label("Quantidade em estoque"), campoQuantidade), 0, 2);
+        formulario.add(criarGrupoCampo(new Label("Data de validade"), campoValidade), 1, 2);
 
         Button cadastrar = new Button("Cadastrar Bebida");
-        cadastrar.getStyleClass().add("botao-principal");
+        cadastrar.getStyleClass().add("btn-primary");
 
-        Label feedback = new Label();
-        feedback.getStyleClass().add("cadastro-subtitulo");
-        feedback.setVisible(false);
+        Button limpar = new Button("Limpar");
+        limpar.getStyleClass().add("btn-secondary");
 
-        HBox botoes = new HBox(12);
-        botoes.getStyleClass().add("cadastro-botoes");
+        Label erro = new Label();
+        erro.getStyleClass().add("field-error");
+        erro.setVisible(false);
 
-        botoes.getChildren().addAll(
-                limpar,
-                cadastrar
-        );
-
-        // =========================
-        // LIMPAR CAMPOS
-        // =========================
+        HBox botoes = new HBox(12, cadastrar, limpar);
 
         limpar.setOnAction(event -> {
-
             campoNome.clear();
             campoMarca.clear();
             campoCategoria.getSelectionModel().clearSelection();
             campoPreco.clear();
             campoQuantidade.clear();
             campoValidade.setValue(null);
-            feedback.setVisible(false);
-
+            erro.setVisible(false);
         });
 
-        // =========================
-        // CADASTRAR BEBIDA
-        // =========================
-
         cadastrar.setOnAction(event -> {
-
             String nome = campoNome.getText().trim();
             String marca = campoMarca.getText().trim();
             String categoria = campoCategoria.getValue();
@@ -268,14 +129,12 @@ public class CadastroBebidaView {
 
             if (nome.isEmpty() || marca.isEmpty() || categoria == null
                     || precoTexto.isEmpty() || quantidadeTexto.isEmpty()) {
-                mostrarFeedback(feedback, "Preencha todos os campos.", false);
+                mostrarErro(erro, "Preencha todos os campos.");
                 return;
             }
 
             try {
-                BigDecimal preco = new BigDecimal(
-                        precoTexto.replace(",", ".")
-                );
+                BigDecimal preco = new BigDecimal(precoTexto.replace(",", "."));
                 int quantidade = Integer.parseInt(quantidadeTexto);
 
                 if (preco.signum() < 0 || quantidade < 0) {
@@ -298,54 +157,37 @@ public class CadastroBebidaView {
                 campoPreco.clear();
                 campoQuantidade.clear();
                 campoValidade.setValue(null);
+                erro.setVisible(false);
 
-                mostrarFeedback(feedback, "Bebida cadastrada com sucesso!", true);
+                notificar.accept("Bebida cadastrada com sucesso!");
             } catch (NumberFormatException e) {
-                mostrarFeedback(feedback,
-                        "Preço deve ser um número e quantidade um inteiro válido.", false);
+                mostrarErro(erro,
+                        "Preço deve ser um número e quantidade um inteiro válido.");
             }
-
         });
 
-        // =========================
-        // MONTAGEM
-        // =========================
-
-        cardFormulario.getChildren().addAll(
+        VBox card = new VBox(20,
                 topoFormulario,
                 formulario,
-                botoes
-        );
+                erro,
+                botoes);
+        card.getStyleClass().add("panel");
+        card.setMaxWidth(880);
 
-        pagina.getChildren().addAll(
-                cabecalho,
-                cardFormulario
-        );
-
-        root.setCenter(pagina);
+        VBox raiz = new VBox(24, cabecalho, card);
+        raiz.setMaxWidth(Double.MAX_VALUE);
+        return raiz;
     }
 
-    private VBox criarGrupoCampo(
-            Label label,
-            javafx.scene.Node campo) {
+    private VBox criarGrupoCampo(Label label, Node campo) {
+        label.getStyleClass().add("field-label");
 
-        VBox grupo = new VBox(8);
-
-        grupo.getChildren().addAll(
-                label,
-                campo
-        );
-
+        VBox grupo = new VBox(6, label, campo);
         return grupo;
     }
 
-    private void mostrarFeedback(Label feedback, String mensagem, boolean sucesso) {
-        feedback.setText(mensagem);
-        feedback.setStyle(sucesso ? "" : "-fx-text-fill: #dc2626;");
-        feedback.setVisible(true);
-    }
-
-    public BorderPane getRoot() {
-        return root;
+    private void mostrarErro(Label erro, String mensagem) {
+        erro.setText(mensagem);
+        erro.setVisible(true);
     }
 }

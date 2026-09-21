@@ -52,6 +52,11 @@
     -fx-text-fill: -bm-danger;
 }
 
+.field-success {
+    -fx-font-size: 12px;
+    -fx-text-fill: -bm-success-text;
+}
+
 /* ComboBox - remove o azul padrao */
 .combo-box .list-cell {
     -fx-text-fill: -bm-text;

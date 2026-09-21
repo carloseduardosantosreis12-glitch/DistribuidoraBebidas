@@ -3,13 +3,15 @@ package br.com.distribuidora.view;
 import br.com.distribuidora.model.Bebida;
 import br.com.distribuidora.repository.ConfiguracaoStore;
 import br.com.distribuidora.repository.EstoqueRepository;
+import br.com.distribuidora.view.components.PageHeader;
+import br.com.distribuidora.view.components.StatCard;
+import br.com.distribuidora.view.components.StatusBadge;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
-import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.chart.BarChart;
@@ -29,15 +31,13 @@ import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
-import javafx.scene.layout.StackPane;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 
 public class RelatorioView {
 
-    private final BorderPane root = new BorderPane();
     private final EstoqueRepository estoque = EstoqueRepository.getInstance();
     private final ConfiguracaoStore config = ConfiguracaoStore.getInstance();
 
@@ -77,107 +77,29 @@ public class RelatorioView {
             new CompraMock("16/01/2026", "C-2005", "Dell Vale", 6, "610,00", "Cancelada")
     ));
 
-    public RelatorioView() {
-        root.getStyleClass().add("cadastro-root");
-
-        VBox pagina = new VBox(25);
-        pagina.setPadding(new Insets(35));
-
-        // =========================
-        // CABEÇALHO
-        // =========================
-
-        Label titulo = new Label("Relatórios");
-        titulo.getStyleClass().add("cadastro-titulo");
-
-        Label subtitulo = new Label("Consulte e acompanhe os dados da distribuidora");
-        subtitulo.getStyleClass().add("cadastro-subtitulo");
-
-        VBox cabecalho = new VBox(5);
-        cabecalho.getChildren().addAll(titulo, subtitulo);
-
-        // =========================
-        // FILTRO POR PERÍODO
-        // =========================
-
-        VBox cardFiltros = new VBox(16);
-        cardFiltros.getStyleClass().add("cadastro-card");
-
-        Label tituloFiltros = new Label("Período do relatório");
-        tituloFiltros.getStyleClass().add("formulario-titulo");
-
-        HBox linhaFiltros = new HBox(16);
-        linhaFiltros.setAlignment(Pos.CENTER_LEFT);
-
-        DatePicker dataInicial = new DatePicker();
-        dataInicial.getStyleClass().add("campo-formulario");
-        dataInicial.setPrefWidth(180);
-
-        DatePicker dataFinal = new DatePicker();
-        dataFinal.getStyleClass().add("campo-formulario");
-        dataFinal.setPrefWidth(180);
-
-        Button filtrar = new Button("Filtrar");
-        filtrar.getStyleClass().add("botao-principal");
-
-        Button limpar = new Button("Limpar filtros");
-        limpar.getStyleClass().add("botao-secundario");
-
-        feedbackFiltros = new Label();
-        feedbackFiltros.getStyleClass().add("cadastro-subtitulo");
-        feedbackFiltros.setVisible(false);
-
-        linhaFiltros.getChildren().addAll(
-                criarGrupoCampo("Data inicial", dataInicial),
-                criarGrupoCampo("Data final", dataFinal),
-                filtrar,
-                limpar
+    public VBox getRoot() {
+        PageHeader cabecalho = new PageHeader(
+                "Relatórios",
+                "Consulte e acompanhe os dados da distribuidora"
         );
 
-        filtrar.setOnAction(event -> {
-            feedbackFiltros.setText("Relatório gerado para o período selecionado.");
-            feedbackFiltros.setStyle("");
-            feedbackFiltros.setVisible(true);
+        VBox cardFiltros = criarCardFiltros();
+
+        HBox cardsResumo = new HBox(16,
+                new StatCard("Total de Vendas", "1.247"),
+                new StatCard("Valor Total Vendido", formatarValor(new BigDecimal("84532.90"))),
+                new StatCard("Produtos Vendidos", "9.856"),
+                new StatCard("Ticket Médio", formatarValor(new BigDecimal("67.80"))));
+        cardsResumo.getChildren().forEach(no -> {
+            HBox.setHgrow(no, Priority.ALWAYS);
+            ((Region) no).setMaxWidth(Double.MAX_VALUE);
         });
-
-        limpar.setOnAction(event -> {
-            dataInicial.setValue(null);
-            dataFinal.setValue(null);
-            feedbackFiltros.setText("Filtros de período limpos.");
-            feedbackFiltros.setStyle("");
-            feedbackFiltros.setVisible(true);
-        });
-
-        cardFiltros.getChildren().addAll(tituloFiltros, linhaFiltros, feedbackFiltros);
-
-        // =========================
-        // CARDS DE RESUMO
-        // =========================
-
-        HBox cardsResumo = new HBox(18);
-        cardsResumo.setFillHeight(true);
-
-        StackPane cardVendas = criarCard("Total de Vendas", "1.247", "Vendas no período");
-        StackPane cardValor = criarCard("Valor Total Vendido", formatarValor(new BigDecimal("84532.90")), "Faturamento bruto");
-        StackPane cardProdutos = criarCard("Produtos Vendidos", "9.856", "Itens comercializados");
-        StackPane cardTicket = criarCard("Ticket Médio", formatarValor(new BigDecimal("67.80")), "Valor médio por venda");
-
-        cardVendas.getStyleClass().add("card-azul");
-        cardValor.getStyleClass().add("card-verde");
-        cardProdutos.getStyleClass().add("card-laranja");
-        cardTicket.getStyleClass().add("card-roxo");
-
-        cardsResumo.getChildren().addAll(cardVendas, cardValor, cardProdutos, cardTicket);
-
-        // =========================
-        // RELATÓRIOS DISPONÍVEIS
-        // =========================
 
         Label tituloRelatorios = new Label("Relatórios disponíveis");
-        tituloRelatorios.getStyleClass().add("secao-titulo");
+        tituloRelatorios.getStyleClass().add("section-title");
 
         TabPane abas = new TabPane();
-        abas.getStyleClass().add("relatorio-abas");
+        abas.getStyleClass().add("tabs");
 
         Tab abaVendas = new Tab("Vendas", criarAbaVendas());
         Tab abaEstoque = new Tab("Estoque", criarAbaEstoque());
@@ -187,44 +109,14 @@ public class RelatorioView {
 
         abas.getTabs().addAll(abaVendas, abaEstoque, abaProdutos, abaFinanceiro, abaCompras);
 
-        // =========================
-        // GRÁFICOS
-        // =========================
-
         Label tituloGraficos = new Label("Gráficos");
-        tituloGraficos.getStyleClass().add("secao-titulo");
+        tituloGraficos.getStyleClass().add("section-title");
 
         VBox secaoGraficos = criarSecaoGraficos();
 
-        // =========================
-        // BOTÕES DE AÇÃO
-        // =========================
+        VBox cardAcoes = criarCardAcoes();
 
-        VBox cardAcoes = new VBox(14);
-        cardAcoes.getStyleClass().add("cadastro-card");
-
-        Label tituloAcoes = new Label("Ações");
-        tituloAcoes.getStyleClass().add("formulario-titulo");
-
-        HBox linhaAcoes = new HBox(12);
-        linhaAcoes.getChildren().addAll(
-                criarBotaoAcao("Visualizar", "botao-principal"),
-                criarBotaoAcao("Imprimir", "botao-secundario"),
-                criarBotaoAcao("Exportar PDF", "botao-secundario"),
-                criarBotaoAcao("Exportar Excel", "botao-secundario")
-        );
-
-        feedbackAcoes = new Label();
-        feedbackAcoes.getStyleClass().add("cadastro-subtitulo");
-        feedbackAcoes.setVisible(false);
-
-        cardAcoes.getChildren().addAll(tituloAcoes, linhaAcoes, feedbackAcoes);
-
-        // =========================
-        // MONTAGEM
-        // =========================
-
-        pagina.getChildren().addAll(
+        VBox raiz = new VBox(24,
                 cabecalho,
                 cardFiltros,
                 cardsResumo,
@@ -232,14 +124,80 @@ public class RelatorioView {
                 abas,
                 tituloGraficos,
                 secaoGraficos,
-                cardAcoes
-        );
+                cardAcoes);
+        raiz.setMaxWidth(Double.MAX_VALUE);
+        return raiz;
+    }
 
-        javafx.scene.control.ScrollPane rolagem = new javafx.scene.control.ScrollPane(pagina);
-        rolagem.setFitToWidth(true);
-        rolagem.getStyleClass().add("pagina-scroll");
+    // =========================
+    // CARD DE FILTRO POR PERÍODO
+    // =========================
 
-        root.setCenter(rolagem);
+    private VBox criarCardFiltros() {
+        VBox card = new VBox(16);
+        card.getStyleClass().add("panel");
+
+        Label titulo = new Label("Período do relatório");
+        titulo.getStyleClass().add("section-title");
+
+        DatePicker dataInicial = new DatePicker();
+        dataInicial.setPrefWidth(180);
+
+        DatePicker dataFinal = new DatePicker();
+        dataFinal.setPrefWidth(180);
+
+        Button filtrar = new Button("Filtrar");
+        filtrar.getStyleClass().add("btn-primary");
+
+        Button limpar = new Button("Limpar filtros");
+        limpar.getStyleClass().add("btn-secondary");
+
+        feedbackFiltros = new Label();
+        feedbackFiltros.getStyleClass().add("field-help");
+        feedbackFiltros.setVisible(false);
+
+        HBox linha = new HBox(16,
+                criarGrupoCampo("Data inicial", dataInicial),
+                criarGrupoCampo("Data final", dataFinal),
+                filtrar,
+                limpar);
+        linha.setAlignment(Pos.CENTER_LEFT);
+
+        filtrar.setOnAction(event -> {
+            feedbackFiltros.setText("Relatório gerado para o período selecionado.");
+            feedbackFiltros.setVisible(true);
+        });
+
+        limpar.setOnAction(event -> {
+            dataInicial.setValue(null);
+            dataFinal.setValue(null);
+            feedbackFiltros.setText("Filtros de período limpos.");
+            feedbackFiltros.setVisible(true);
+        });
+
+        card.getChildren().addAll(titulo, linha, feedbackFiltros);
+        return card;
+    }
+
+    private VBox criarCardAcoes() {
+        VBox card = new VBox(16);
+        card.getStyleClass().add("panel");
+
+        Label titulo = new Label("Ações");
+        titulo.getStyleClass().add("section-title");
+
+        HBox linha = new HBox(12,
+                criarBotaoAcao("Visualizar", "btn-primary"),
+                criarBotaoAcao("Imprimir", "btn-secondary"),
+                criarBotaoAcao("Exportar PDF", "btn-secondary"),
+                criarBotaoAcao("Exportar Excel", "btn-secondary"));
+
+        feedbackAcoes = new Label();
+        feedbackAcoes.getStyleClass().add("field-help");
+        feedbackAcoes.setVisible(false);
+
+        card.getChildren().addAll(titulo, linha, feedbackAcoes);
+        return card;
     }
 
     // =========================
@@ -250,9 +208,6 @@ public class RelatorioView {
         VBox conteudo = new VBox(18);
 
         ObservableList<VendaMock> dados = FXCollections.observableArrayList(vendasMock);
-
-        HBox filtros = new HBox(14);
-        filtros.setAlignment(Pos.CENTER_LEFT);
 
         ComboBox<String> cliente = new ComboBox<>();
         cliente.getItems().addAll("Todos", "Bar do Zé", "Mercado Central",
@@ -276,12 +231,12 @@ public class RelatorioView {
         status.setValue("Todos");
         status.setPrefWidth(140);
 
-        filtros.getChildren().addAll(
+        HBox filtros = new HBox(14,
                 criarGrupoCampo("Cliente", cliente),
                 criarGrupoCampo("Vendedor", vendedor),
                 criarGrupoCampo("Forma de pagamento", pagamento),
-                criarGrupoCampo("Status", status)
-        );
+                criarGrupoCampo("Status", status));
+        filtros.setAlignment(Pos.CENTER_LEFT);
 
         FilteredList<VendaMock> filtrada = new FilteredList<>(dados);
         filtrada.setPredicate(venda -> filtrarVenda(venda, cliente.getValue(),
@@ -302,6 +257,7 @@ public class RelatorioView {
 
         TableView<VendaMock> tabela = new TableView<>(filtrada);
         tabela.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        tabela.setFixedCellSize(44);
         tabela.setMaxHeight(300);
 
         TableColumn<VendaMock, String> colData = new TableColumn<>("Data");
@@ -331,7 +287,9 @@ public class RelatorioView {
             }
         });
 
-        TableColumn<VendaMock, String> colStatus = criarColunaStatusVenda();
+        TableColumn<VendaMock, String> colStatus = new TableColumn<>("Status");
+        colStatus.setCellValueFactory(new PropertyValueFactory<>("status"));
+        colStatus.setCellFactory(col -> criarCelulaStatus());
 
         tabela.getColumns().addAll(colData, colNumero, colCliente, colVendedor,
                 colItens, colPagamento, colValor, colStatus);
@@ -356,15 +314,11 @@ public class RelatorioView {
     private Node criarAbaEstoque() {
         VBox conteudo = new VBox(18);
 
-        HBox legenda = new HBox(18);
+        HBox legenda = new HBox(18,
+                criarItemLegenda("dot-success", "Estoque normal"),
+                criarItemLegenda("dot-warning", "Estoque baixo"),
+                criarItemLegenda("dot-danger", "Sem estoque"));
         legenda.setAlignment(Pos.CENTER_LEFT);
-        legenda.getStyleClass().add("legenda-estoque");
-
-        legenda.getChildren().addAll(
-                criarItemLegenda("badge-sucesso", "Estoque normal"),
-                criarItemLegenda("badge-alerta", "Estoque baixo"),
-                criarItemLegenda("badge-perigo", "Sem estoque")
-        );
 
         List<Bebida> bebidas = estoque.listar();
         int limite = config.getLimiteEstoqueBaixo();
@@ -386,6 +340,7 @@ public class RelatorioView {
                 FXCollections.observableArrayList(registros)
         );
         tabela.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        tabela.setFixedCellSize(44);
         tabela.setMaxHeight(300);
 
         TableColumn<EstoqueMock, String> colCodigo = new TableColumn<>("Código");
@@ -457,6 +412,7 @@ public class RelatorioView {
                 FXCollections.observableArrayList(registros)
         );
         tabela.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        tabela.setFixedCellSize(44);
         tabela.setMaxHeight(300);
 
         TableColumn<ProdutoMock, String> colCodigo = new TableColumn<>("Código");
@@ -521,23 +477,20 @@ public class RelatorioView {
         }
         BigDecimal saldo = receitas.subtract(despesas);
 
-        HBox cards = new HBox(18);
-        cards.setFillHeight(true);
-
-        StackPane cardReceita = criarCard("Receitas", formatarValor(receitas), "Total de entradas");
-        StackPane cardDespesa = criarCard("Despesas", formatarValor(despesas), "Total de saídas");
-        StackPane cardSaldo = criarCard("Saldo", formatarValor(saldo), "Receitas - Despesas");
-
-        cardReceita.getStyleClass().add("card-verde");
-        cardDespesa.getStyleClass().add("card-laranja");
-        cardSaldo.getStyleClass().add("card-azul");
-
-        cards.getChildren().addAll(cardReceita, cardDespesa, cardSaldo);
+        HBox cards = new HBox(16,
+                new StatCard("Receitas", formatarValor(receitas)),
+                new StatCard("Despesas", formatarValor(despesas), true),
+                new StatCard("Saldo", formatarValor(saldo)));
+        cards.getChildren().forEach(no -> {
+            HBox.setHgrow(no, Priority.ALWAYS);
+            ((Region) no).setMaxWidth(Double.MAX_VALUE);
+        });
 
         TableView<FinanceiroMock> tabela = new TableView<>(
                 FXCollections.observableArrayList(financeiroMock)
         );
         tabela.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        tabela.setFixedCellSize(44);
         tabela.setMaxHeight(300);
 
         TableColumn<FinanceiroMock, String> colData = new TableColumn<>("Data");
@@ -548,6 +501,7 @@ public class RelatorioView {
 
         TableColumn<FinanceiroMock, String> colTipo = new TableColumn<>("Tipo");
         colTipo.setCellValueFactory(new PropertyValueFactory<>("tipo"));
+        colTipo.setCellFactory(col -> criarCelulaStatus());
 
         TableColumn<FinanceiroMock, String> colCategoria = new TableColumn<>("Categoria");
         colCategoria.setCellValueFactory(new PropertyValueFactory<>("categoria"));
@@ -573,6 +527,7 @@ public class RelatorioView {
                 FXCollections.observableArrayList(comprasMock)
         );
         tabela.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        tabela.setFixedCellSize(44);
         tabela.setMaxHeight(300);
 
         TableColumn<CompraMock, String> colData = new TableColumn<>("Data");
@@ -612,26 +567,18 @@ public class RelatorioView {
     // =========================
 
     private VBox criarSecaoGraficos() {
-        VBox secao = new VBox(18);
+        HBox linha1 = new HBox(18,
+                criarCardGrafico("Vendas por período", criarGraficoLinhaVendas()),
+                criarCardGrafico("Produtos mais vendidos", criarGraficoBarras()));
 
-        HBox linha1 = new HBox(18);
+        HBox linha2 = new HBox(18,
+                criarCardGrafico("Entradas e saídas", criarGraficoEntradasSaidas()),
+                criarCardGrafico("Estoque por categoria", criarGraficoPizza()));
+
         linha1.setFillHeight(true);
-
-        HBox linha2 = new HBox(18);
         linha2.setFillHeight(true);
 
-        linha1.getChildren().addAll(
-                criarCardGrafico("Vendas por período", criarGraficoLinhaVendas()),
-                criarCardGrafico("Produtos mais vendidos", criarGraficoBarras())
-        );
-
-        linha2.getChildren().addAll(
-                criarCardGrafico("Entradas e saídas", criarGraficoEntradasSaidas()),
-                criarCardGrafico("Estoque por categoria", criarGraficoPizza())
-        );
-
-        secao.getChildren().addAll(linha1, linha2);
-        return secao;
+        return new VBox(18, linha1, linha2);
     }
 
     private LineChart<String, Number> criarGraficoLinhaVendas() {
@@ -730,12 +677,13 @@ public class RelatorioView {
     }
 
     private VBox criarCardGrafico(String titulo, Node grafico) {
-        VBox card = new VBox(10);
-        card.getStyleClass().add("grafico-card");
+        VBox card = new VBox(12);
+        card.getStyleClass().add("panel");
         HBox.setHgrow(card, Priority.ALWAYS);
+        card.setMaxWidth(Double.MAX_VALUE);
 
         Label label = new Label(titulo);
-        label.getStyleClass().add("grafico-titulo");
+        label.getStyleClass().add("section-title");
 
         card.getChildren().addAll(label, grafico);
         return card;
@@ -744,13 +692,6 @@ public class RelatorioView {
     // =========================
     // CÉLULAS DE STATUS E VALOR
     // =========================
-
-    private TableColumn<VendaMock, String> criarColunaStatusVenda() {
-        TableColumn<VendaMock, String> coluna = new TableColumn<>("Status");
-        coluna.setCellValueFactory(new PropertyValueFactory<>("status"));
-        coluna.setCellFactory(col -> criarCelulaStatus());
-        return coluna;
-    }
 
     private <T> TableCell<T, String> criarCelulaStatus() {
         return new TableCell<>() {
@@ -761,12 +702,19 @@ public class RelatorioView {
                     setGraphic(null);
                     setText(null);
                 } else {
-                    Label badge = new Label(status);
-                    badge.getStyleClass().addAll("badge", classeBadge(status));
-                    setGraphic(badge);
+                    setGraphic(new StatusBadge(status, nivelDe(status)));
                     setText(null);
                 }
             }
+        };
+    }
+
+    private StatusBadge.Nivel nivelDe(String status) {
+        return switch (status) {
+            case "Concluída", "Receita", "Normal" -> StatusBadge.Nivel.OK;
+            case "Pendente", "Baixo", "Estoque baixo" -> StatusBadge.Nivel.ATENCAO;
+            case "Cancelada", "Despesa", "Sem estoque" -> StatusBadge.Nivel.CRITICO;
+            default -> StatusBadge.Nivel.INFO;
         };
     }
 
@@ -782,30 +730,11 @@ public class RelatorioView {
                     FinanceiroMock item = getTableRow() == null ? null : getTableRow().getItem();
                     boolean receita = item != null && "Receita".equals(item.getTipo());
                     setText((receita ? "+ " : "- ") + formatarValor(valor.abs()));
-                    setStyle(receita ? "-fx-text-fill: #16a34a; -fx-font-weight: bold;"
-                            : "-fx-text-fill: #dc2626; -fx-font-weight: bold;");
+                    setStyle(receita ? "-fx-text-fill: -bm-success-text; -fx-font-weight: bold;"
+                            : "-fx-text-fill: -bm-danger-text; -fx-font-weight: bold;");
                 }
             }
         };
-    }
-
-    private String classeBadge(String status) {
-        switch (status) {
-            case "Concluída":
-            case "Receita":
-            case "Normal":
-                return "badge-sucesso";
-            case "Pendente":
-            case "Baixo":
-            case "Estoque baixo":
-                return "badge-alerta";
-            case "Cancelada":
-            case "Despesa":
-            case "Sem estoque":
-                return "badge-perigo";
-            default:
-                return "badge-info";
-        }
     }
 
     // =========================
@@ -817,66 +746,33 @@ public class RelatorioView {
         botao.getStyleClass().add(classe);
         botao.setOnAction(event -> {
             feedbackAcoes.setText("Ação \"" + texto + "\" ficará disponível em breve.");
-            feedbackAcoes.setStyle("");
             feedbackAcoes.setVisible(true);
         });
         return botao;
     }
 
-    private VBox criarGrupoCampo(String texto, Node campo) {
+    private HBox criarItemLegenda(String classeDot, String texto) {
+        Region dot = new Region();
+        dot.getStyleClass().addAll("dot", classeDot);
+
         Label label = new Label(texto);
-        label.getStyleClass().add("campo-label");
+        label.getStyleClass().add("text-muted");
 
-        VBox grupo = new VBox(8);
-        grupo.getChildren().addAll(label, campo);
-        return grupo;
-    }
-
-    private HBox criarItemLegenda(String classeBadge, String texto) {
-        HBox item = new HBox(8);
+        HBox item = new HBox(8, dot, label);
         item.setAlignment(Pos.CENTER_LEFT);
-
-        Label badge = new Label("●");
-        badge.getStyleClass().addAll("badge", classeBadge);
-
-        Label label = new Label(texto);
-        label.getStyleClass().add("campo-label");
-
-        item.getChildren().addAll(badge, label);
         return item;
     }
 
-    private StackPane criarCard(String titulo, String valor, String descricao) {
-        StackPane card = new StackPane();
+    private VBox criarGrupoCampo(String texto, Node campo) {
+        Label label = new Label(texto);
+        label.getStyleClass().add("field-label");
 
-        card.setPrefSize(200, 120);
-        card.getStyleClass().add("card");
-
-        HBox.setHgrow(card, Priority.ALWAYS);
-
-        Label labelTitulo = new Label(titulo);
-        labelTitulo.getStyleClass().add("card-titulo");
-
-        Label labelValor = new Label(valor);
-        labelValor.getStyleClass().add("card-valor");
-
-        Label labelDescricao = new Label(descricao);
-        labelDescricao.getStyleClass().add("card-descricao");
-
-        VBox conteudo = new VBox(5);
-        conteudo.getChildren().addAll(labelTitulo, labelValor, labelDescricao);
-
-        card.getChildren().add(conteudo);
-
-        return card;
+        VBox grupo = new VBox(6, label, campo);
+        return grupo;
     }
 
     private String formatarValor(BigDecimal valor) {
-        return config.getMoeda() + " " + String.format("%.2f", valor);
-    }
-
-    public BorderPane getRoot() {
-        return root;
+        return config.getMoeda() + " " + String.format("%.2f", valor).replace('.', ',');
     }
 
     // =========================

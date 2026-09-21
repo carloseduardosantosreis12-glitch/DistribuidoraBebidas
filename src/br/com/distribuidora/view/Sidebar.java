@@ -19,7 +19,10 @@ public class Sidebar extends VBox {
     public enum Item {
         INICIO("Início", FontAwesomeSolid.HOME),
         BEBIDAS("Bebidas", FontAwesomeSolid.WINE_BOTTLE),
-        CADASTRAR("Cadastrar bebida", FontAwesomeSolid.PLUS);
+        CADASTRAR("Cadastrar bebida", FontAwesomeSolid.PLUS),
+        VENDAS("Vendas", FontAwesomeSolid.SHOPPING_CART),
+        RELATORIOS("Relatórios", FontAwesomeSolid.CHART_BAR),
+        CONFIGURACOES("Configurações", FontAwesomeSolid.COGS);
 
         private final String rotulo;
         private final FontAwesomeSolid icone;
@@ -31,6 +34,7 @@ public class Sidebar extends VBox {
     }
 
     private final Map<Item, HBox> itens = new EnumMap<>(Item.class);
+    private Label tituloEmpresa;
 
     public Sidebar(Consumer<Item> onNavigate) {
         getStyleClass().add("sidebar");
@@ -65,17 +69,21 @@ public class Sidebar extends VBox {
         });
     }
 
+    public void setNomeEmpresa(String nome) {
+        tituloEmpresa.setText(nome);
+    }
+
     private HBox criarMarca() {
         FontIcon icone = new FontIcon(FontAwesomeSolid.WINE_BOTTLE);
         icone.getStyleClass().add("brand-icon");
 
-        Label titulo = new Label("BebMais");
-        titulo.getStyleClass().add("brand-title");
+        tituloEmpresa = new Label("BebMais");
+        tituloEmpresa.getStyleClass().add("brand-title");
 
         Label legenda = new Label("Distribuidora de Bebidas");
         legenda.getStyleClass().add("brand-subtitle");
 
-        HBox marca = new HBox(12, icone, new VBox(2, titulo, legenda));
+        HBox marca = new HBox(12, icone, new VBox(2, tituloEmpresa, legenda));
         marca.setAlignment(Pos.CENTER_LEFT);
         marca.getStyleClass().add("brand");
         return marca;

@@ -11,7 +11,8 @@ public class StatusBadge extends Label {
     public enum Nivel {
         OK("badge-success"),
         ATENCAO("badge-warning"),
-        CRITICO("badge-danger");
+        CRITICO("badge-danger"),
+        INFO("badge-info");
 
         private final String classe;
 
@@ -26,13 +27,17 @@ public class StatusBadge extends Label {
         getStyleClass().add(nivel.classe);
     }
 
-    public static Optional<StatusBadge> paraEstoque(int estoque) {
+    public static Optional<StatusBadge> paraEstoque(int estoque, int limite) {
         if (estoque <= 0) {
             return Optional.of(new StatusBadge("Esgotado", Nivel.CRITICO));
         }
-        if (estoque <= LIMITE_ESTOQUE_BAIXO) {
+        if (estoque <= limite) {
             return Optional.of(new StatusBadge("Baixo", Nivel.ATENCAO));
         }
         return Optional.empty();
+    }
+
+    public static Optional<StatusBadge> paraEstoque(int estoque) {
+        return paraEstoque(estoque, LIMITE_ESTOQUE_BAIXO);
     }
 }

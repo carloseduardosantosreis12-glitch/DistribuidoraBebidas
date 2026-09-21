@@ -1,7 +1,7 @@
 package br.com.distribuidora.view;
 
 import br.com.distribuidora.repository.ConfiguracaoStore;
-import javafx.geometry.Insets;
+import br.com.distribuidora.view.components.PageHeader;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
@@ -14,7 +14,6 @@ import javafx.scene.control.TabPane;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
-import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
@@ -24,7 +23,6 @@ import javafx.scene.layout.VBox;
 
 public class ConfiguracaoView {
 
-    private final BorderPane root = new BorderPane();
     private final ConfiguracaoStore config = ConfiguracaoStore.getInstance();
     private final Runnable onSalvar;
 
@@ -33,25 +31,16 @@ public class ConfiguracaoView {
 
     public ConfiguracaoView(Runnable onSalvar) {
         this.onSalvar = onSalvar;
+    }
 
-        root.getStyleClass().add("cadastro-root");
-
-        VBox pagina = new VBox(25);
-        pagina.setPadding(new Insets(35));
-
-        Label titulo = new Label("Configurações");
-        titulo.getStyleClass().add("cadastro-titulo");
-
-        Label subtitulo = new Label(
+    public VBox getRoot() {
+        PageHeader cabecalho = new PageHeader(
+                "Configurações",
                 "Personalize os dados, o estoque, as vendas, a aparência e as preferências do sistema"
         );
-        subtitulo.getStyleClass().add("cadastro-subtitulo");
-
-        VBox cabecalho = new VBox(5);
-        cabecalho.getChildren().addAll(titulo, subtitulo);
 
         TabPane abas = new TabPane();
-        abas.getStyleClass().add("config-abas");
+        abas.getStyleClass().add("tabs");
 
         Tab abaEmpresa = new Tab("Empresa", criarAbaEmpresa());
         Tab abaEstoque = new Tab("Estoque", criarAbaEstoque());
@@ -61,13 +50,9 @@ public class ConfiguracaoView {
 
         abas.getTabs().addAll(abaEmpresa, abaEstoque, abaVendas, abaAparencia, abaGerais);
 
-        pagina.getChildren().addAll(cabecalho, abas);
-
-        javafx.scene.control.ScrollPane rolagem = new javafx.scene.control.ScrollPane(pagina);
-        rolagem.setFitToWidth(true);
-        rolagem.getStyleClass().add("pagina-scroll");
-
-        root.setCenter(rolagem);
+        VBox raiz = new VBox(20, cabecalho, abas);
+        raiz.setMaxWidth(Double.MAX_VALUE);
+        return raiz;
     }
 
     // =========================
@@ -75,13 +60,12 @@ public class ConfiguracaoView {
     // =========================
 
     private Node criarAbaEmpresa() {
-        VBox conteudo = new VBox(22);
+        VBox conteudo = new VBox(20);
 
         Label descricao = new Label("Mantenha os dados da empresa sempre atualizados.");
-        descricao.getStyleClass().add("formulario-descricao");
+        descricao.getStyleClass().add("field-help");
 
         HBox linha = new HBox(26);
-        linha.setFillHeight(true);
 
         StackPane areaLogo = new StackPane();
         areaLogo.setPrefSize(220, 150);
@@ -91,16 +75,14 @@ public class ConfiguracaoView {
         textoLogo.getStyleClass().add("logo-texto");
 
         Button alterarLogo = new Button("Alterar logo");
-        alterarLogo.getStyleClass().add("botao-secundario");
+        alterarLogo.getStyleClass().add("btn-secondary");
 
-        VBox interiorLogo = new VBox(12);
+        VBox interiorLogo = new VBox(12, textoLogo, alterarLogo);
         interiorLogo.setAlignment(Pos.CENTER);
-        interiorLogo.getChildren().addAll(textoLogo, alterarLogo);
 
         areaLogo.getChildren().add(interiorLogo);
 
         campoEmpresa = new TextField(config.getNomeEmpresa());
-        campoEmpresa.getStyleClass().add("campo-formulario");
         campoEmpresa.setMaxWidth(Double.MAX_VALUE);
 
         TextField campoCnpj = criarCampoFormulario("00.000.000/0000-00");
@@ -112,8 +94,8 @@ public class ConfiguracaoView {
         TextField campoCep = criarCampoFormulario("00000-000");
 
         GridPane formulario = new GridPane();
-        formulario.setHgap(25);
-        formulario.setVgap(20);
+        formulario.setHgap(24);
+        formulario.setVgap(16);
 
         ColumnConstraints c1 = new ColumnConstraints();
         c1.setPercentWidth(50);
@@ -134,21 +116,19 @@ public class ConfiguracaoView {
         formulario.add(criarGrupoCampo("Estado", campoEstado), 0, 3);
         formulario.add(criarGrupoCampo("CEP", campoCep), 1, 3);
 
-        GridPane.setHgrow(formulario, Priority.ALWAYS);
-
-        linha.getChildren().addAll(areaLogo, formulario);
         HBox.setHgrow(formulario, Priority.ALWAYS);
 
+        linha.getChildren().addAll(areaLogo, formulario);
+
         Button salvar = new Button("Salvar alterações");
-        salvar.getStyleClass().add("botao-principal");
+        salvar.getStyleClass().add("btn-primary");
 
         Label feedback = new Label();
-        feedback.getStyleClass().add("cadastro-subtitulo");
+        feedback.getStyleClass().add("field-error");
         feedback.setVisible(false);
 
-        HBox rodape = new HBox(12);
+        HBox rodape = new HBox(12, feedback, salvar);
         rodape.setAlignment(Pos.CENTER_RIGHT);
-        rodape.getChildren().addAll(feedback, salvar);
 
         alterarLogo.setOnAction(event -> mostrarFeedback(
                 feedback, "Seletor de imagem ficará disponível em breve.", false));
@@ -170,10 +150,7 @@ public class ConfiguracaoView {
             }
 
             mostrarFeedback(feedback, "Dados da empresa salvos com sucesso!", true);
-
-            if (onSalvar != null) {
-                onSalvar.run();
-            }
+            notificarSalvamento();
         });
 
         conteudo.getChildren().addAll(descricao, linha, rodape);
@@ -185,22 +162,19 @@ public class ConfiguracaoView {
     // =========================
 
     private Node criarAbaEstoque() {
-        VBox conteudo = new VBox(20);
+        VBox conteudo = new VBox(18);
 
         Label descricao = new Label("Defina os limites e alertas de estoque do sistema.");
-        descricao.getStyleClass().add("formulario-descricao");
+        descricao.getStyleClass().add("field-help");
 
         campoLimite = new TextField(String.valueOf(config.getLimiteEstoqueBaixo()));
-        campoLimite.getStyleClass().add("campo-formulario");
         campoLimite.setPrefWidth(180);
 
         VBox grupoLimite = criarGrupoCampo("Estoque mínimo padrão", campoLimite);
 
-        VBox alertas = new VBox(14);
-
+        VBox alertas = new VBox(12);
         Label tituloAlertas = new Label("Alertas de estoque");
-        tituloAlertas.getStyleClass().add("formulario-titulo");
-
+        tituloAlertas.getStyleClass().add("section-title");
         alertas.getChildren().addAll(
                 tituloAlertas,
                 criarSwitch("Ativar alerta de estoque baixo", true),
@@ -208,15 +182,14 @@ public class ConfiguracaoView {
         );
 
         Button salvar = new Button("Salvar");
-        salvar.getStyleClass().add("botao-principal");
+        salvar.getStyleClass().add("btn-primary");
 
         Label feedback = new Label();
-        feedback.getStyleClass().add("cadastro-subtitulo");
+        feedback.getStyleClass().add("field-error");
         feedback.setVisible(false);
 
-        HBox rodape = new HBox(12);
+        HBox rodape = new HBox(12, feedback, salvar);
         rodape.setAlignment(Pos.CENTER_RIGHT);
-        rodape.getChildren().addAll(feedback, salvar);
 
         salvar.setOnAction(event -> {
             try {
@@ -229,12 +202,10 @@ public class ConfiguracaoView {
                 config.salvar();
 
                 mostrarFeedback(feedback, "Configurações de estoque salvas!", true);
-
-                if (onSalvar != null) {
-                    onSalvar.run();
-                }
+                notificarSalvamento();
             } catch (NumberFormatException e) {
-                mostrarFeedback(feedback, "O estoque mínimo deve ser um número inteiro válido.", false);
+                mostrarFeedback(feedback,
+                        "O estoque mínimo deve ser um número inteiro válido.", false);
             } catch (Exception e) {
                 mostrarFeedback(feedback, "Erro ao salvar as configurações.", false);
             }
@@ -249,13 +220,13 @@ public class ConfiguracaoView {
     // =========================
 
     private Node criarAbaVendas() {
-        VBox conteudo = new VBox(20);
+        VBox conteudo = new VBox(18);
 
         Label descricao = new Label("Configure as preferências para as vendas no balcão.");
-        descricao.getStyleClass().add("formulario-descricao");
+        descricao.getStyleClass().add("field-help");
 
         Label tituloPagamento = new Label("Formas de pagamento");
-        tituloPagamento.getStyleClass().add("formulario-titulo");
+        tituloPagamento.getStyleClass().add("section-title");
 
         VBox listaPagamentos = new VBox(10);
         listaPagamentos.getChildren().addAll(
@@ -267,26 +238,23 @@ public class ConfiguracaoView {
         );
 
         Label tituloDesconto = new Label("Descontos");
-        tituloDesconto.getStyleClass().add("formulario-titulo");
+        tituloDesconto.getStyleClass().add("section-title");
 
         HBox permitirDesconto = criarSwitch("Permitir desconto nas vendas", true);
 
         TextField limiteDesconto = new TextField("10");
-        limiteDesconto.getStyleClass().add("campo-formulario");
         limiteDesconto.setPrefWidth(110);
 
         Label sufixo = new Label("%");
-        sufixo.getStyleClass().add("campo-label");
+        sufixo.getStyleClass().add("field-label");
 
-        HBox grupoLimite = new HBox(10);
-        grupoLimite.setAlignment(Pos.CENTER_LEFT);
-        grupoLimite.getChildren().addAll(
-                criarGrupoCampo("Limite de desconto (%)", limiteDesconto),
-                sufixo
-        );
+        VBox grupoLimite = criarGrupoCampo("Limite de desconto (%)", limiteDesconto);
+
+        HBox linhaLimite = new HBox(10, grupoLimite, sufixo);
+        linhaLimite.setAlignment(Pos.CENTER_LEFT);
 
         Label tituloFluxo = new Label("Fluxo de venda");
-        tituloFluxo.getStyleClass().add("formulario-titulo");
+        tituloFluxo.getStyleClass().add("section-title");
 
         VBox fluxo = new VBox(10);
         fluxo.getChildren().addAll(
@@ -295,15 +263,14 @@ public class ConfiguracaoView {
         );
 
         Button salvar = new Button("Salvar");
-        salvar.getStyleClass().add("botao-principal");
+        salvar.getStyleClass().add("btn-primary");
 
         Label feedback = new Label();
-        feedback.getStyleClass().add("cadastro-subtitulo");
+        feedback.getStyleClass().add("field-error");
         feedback.setVisible(false);
 
-        HBox rodape = new HBox(12);
+        HBox rodape = new HBox(12, feedback, salvar);
         rodape.setAlignment(Pos.CENTER_RIGHT);
-        rodape.getChildren().addAll(feedback, salvar);
 
         salvar.setOnAction(event -> {
             String limite = limiteDesconto.getText().trim();
@@ -311,7 +278,8 @@ public class ConfiguracaoView {
             try {
                 Double.parseDouble(limite.replace(",", "."));
             } catch (NumberFormatException e) {
-                mostrarFeedback(feedback, "O limite de desconto deve ser um número válido.", false);
+                mostrarFeedback(feedback,
+                        "O limite de desconto deve ser um número válido.", false);
                 return;
             }
 
@@ -324,7 +292,7 @@ public class ConfiguracaoView {
                 listaPagamentos,
                 tituloDesconto,
                 permitirDesconto,
-                grupoLimite,
+                linhaLimite,
                 tituloFluxo,
                 fluxo,
                 rodape
@@ -338,13 +306,13 @@ public class ConfiguracaoView {
     // =========================
 
     private Node criarAbaAparencia() {
-        VBox conteudo = new VBox(20);
+        VBox conteudo = new VBox(18);
 
         Label descricao = new Label("Personalize o tema, a fonte e a densidade da interface.");
-        descricao.getStyleClass().add("formulario-descricao");
+        descricao.getStyleClass().add("field-help");
 
         Label tituloTema = new Label("Tema");
-        tituloTema.getStyleClass().add("formulario-titulo");
+        tituloTema.getStyleClass().add("section-title");
 
         ToggleGroup grupoTema = new ToggleGroup();
 
@@ -361,9 +329,8 @@ public class ConfiguracaoView {
         sistema.setToggleGroup(grupoTema);
         claro.setSelected(true);
 
-        HBox linhasTema = new HBox(22);
+        HBox linhasTema = new HBox(22, claro, escuro, sistema);
         linhasTema.setAlignment(Pos.CENTER_LEFT);
-        linhasTema.getChildren().addAll(claro, escuro, sistema);
 
         ComboBox<String> tamanhoFonte = new ComboBox<>();
         tamanhoFonte.getItems().addAll("Pequena", "Média", "Grande");
@@ -375,26 +342,23 @@ public class ConfiguracaoView {
         densidade.setValue("Confortável");
         densidade.setPrefWidth(160);
 
-        HBox opcoes = new HBox(26);
-        opcoes.setAlignment(Pos.CENTER_LEFT);
-        opcoes.getChildren().addAll(
+        HBox opcoes = new HBox(26,
                 criarGrupoCampo("Tamanho da fonte", tamanhoFonte),
-                criarGrupoCampo("Densidade da interface", densidade)
-        );
+                criarGrupoCampo("Densidade da interface", densidade));
+        opcoes.setAlignment(Pos.CENTER_LEFT);
 
         Button aplicar = new Button("Aplicar");
-        aplicar.getStyleClass().add("botao-principal");
+        aplicar.getStyleClass().add("btn-primary");
 
         Button restaurar = new Button("Restaurar padrão");
-        restaurar.getStyleClass().add("botao-secundario");
+        restaurar.getStyleClass().add("btn-secondary");
 
         Label feedback = new Label();
-        feedback.getStyleClass().add("cadastro-subtitulo");
+        feedback.getStyleClass().add("field-error");
         feedback.setVisible(false);
 
-        HBox rodape = new HBox(12);
+        HBox rodape = new HBox(12, feedback, restaurar, aplicar);
         rodape.setAlignment(Pos.CENTER_RIGHT);
-        rodape.getChildren().addAll(feedback, restaurar, aplicar);
 
         aplicar.setOnAction(event -> {
             Object tema = grupoTema.getSelectedToggle() == null
@@ -427,10 +391,10 @@ public class ConfiguracaoView {
     // =========================
 
     private Node criarAbaGerais() {
-        VBox conteudo = new VBox(20);
+        VBox conteudo = new VBox(18);
 
         Label descricao = new Label("Ajuste formatos e preferências gerais do sistema.");
-        descricao.getStyleClass().add("formulario-descricao");
+        descricao.getStyleClass().add("field-help");
 
         ComboBox<String> formatoData = new ComboBox<>();
         formatoData.getItems().addAll("dd/MM/aaaa", "MM/dd/aaaa", "aaaa-MM-dd");
@@ -442,15 +406,13 @@ public class ConfiguracaoView {
         formatoMoeda.setValue(config.getMoeda());
         formatoMoeda.setPrefWidth(120);
 
-        HBox formatos = new HBox(26);
-        formatos.setAlignment(Pos.CENTER_LEFT);
-        formatos.getChildren().addAll(
+        HBox formatos = new HBox(26,
                 criarGrupoCampo("Formato de data", formatoData),
-                criarGrupoCampo("Formato de moeda", formatoMoeda)
-        );
+                criarGrupoCampo("Formato de moeda", formatoMoeda));
+        formatos.setAlignment(Pos.CENTER_LEFT);
 
         Label tituloPreferencias = new Label("Preferências do sistema");
-        tituloPreferencias.getStyleClass().add("formulario-titulo");
+        tituloPreferencias.getStyleClass().add("section-title");
 
         VBox preferencias = new VBox(10);
         preferencias.getChildren().addAll(
@@ -460,15 +422,14 @@ public class ConfiguracaoView {
         );
 
         Button salvar = new Button("Salvar");
-        salvar.getStyleClass().add("botao-principal");
+        salvar.getStyleClass().add("btn-primary");
 
         Label feedback = new Label();
-        feedback.getStyleClass().add("cadastro-subtitulo");
+        feedback.getStyleClass().add("field-error");
         feedback.setVisible(false);
 
-        HBox rodape = new HBox(12);
+        HBox rodape = new HBox(12, feedback, salvar);
         rodape.setAlignment(Pos.CENTER_RIGHT);
-        rodape.getChildren().addAll(feedback, salvar);
 
         salvar.setOnAction(event -> {
             config.setMoeda(formatoMoeda.getValue());
@@ -480,10 +441,7 @@ public class ConfiguracaoView {
             }
 
             mostrarFeedback(feedback, "Configurações gerais salvas com sucesso!", true);
-
-            if (onSalvar != null) {
-                onSalvar.run();
-            }
+            notificarSalvamento();
         });
 
         conteudo.getChildren().addAll(
@@ -501,10 +459,15 @@ public class ConfiguracaoView {
     // HELPERES
     // =========================
 
+    private void notificarSalvamento() {
+        if (onSalvar != null) {
+            onSalvar.run();
+        }
+    }
+
     private TextField criarCampoFormulario(String prompt) {
         TextField campo = new TextField();
         campo.setPromptText(prompt);
-        campo.getStyleClass().add("campo-formulario");
         campo.setMaxWidth(Double.MAX_VALUE);
         return campo;
     }
@@ -512,7 +475,6 @@ public class ConfiguracaoView {
     private CheckBox criarCheckBox(String texto, boolean selecionado) {
         CheckBox check = new CheckBox(texto);
         check.setSelected(selecionado);
-        check.getStyleClass().add("checkbox-config");
         return check;
     }
 
@@ -523,33 +485,26 @@ public class ConfiguracaoView {
         toggle.getStyleClass().add("switch");
 
         Label label = new Label(texto);
-        label.getStyleClass().add("campo-label");
+        label.getStyleClass().add("field-label");
 
-        HBox linha = new HBox(12);
+        HBox linha = new HBox(12, label, toggle);
         linha.setAlignment(Pos.CENTER_LEFT);
-
         HBox.setHgrow(label, Priority.ALWAYS);
-
-        linha.getChildren().addAll(label, toggle);
         return linha;
     }
 
     private VBox criarGrupoCampo(String texto, Node campo) {
         Label label = new Label(texto);
-        label.getStyleClass().add("campo-label");
+        label.getStyleClass().add("field-label");
 
-        VBox grupo = new VBox(8);
-        grupo.getChildren().addAll(label, campo);
+        VBox grupo = new VBox(6, label, campo);
         return grupo;
     }
 
     private void mostrarFeedback(Label feedback, String mensagem, boolean sucesso) {
         feedback.setText(mensagem);
-        feedback.setStyle(sucesso ? "" : "-fx-text-fill: #dc2626;");
+        feedback.getStyleClass().removeAll("field-error", "field-success");
+        feedback.getStyleClass().add(sucesso ? "field-success" : "field-error");
         feedback.setVisible(true);
-    }
-
-    public BorderPane getRoot() {
-        return root;
     }
 }
