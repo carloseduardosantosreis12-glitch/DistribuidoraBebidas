@@ -1,4 +1,4 @@
-/* components.css - sidebar, navegacao e cabecalho de pagina */
+/* components.css - sidebar, navegacao, cabecalho, cards, tabela, badges, botoes e toast */
 
 .sidebar {
     -fx-background-color: linear-gradient(to bottom, -bm-green-900, #1F6A41);
@@ -77,4 +77,210 @@
 .page-subtitle {
     -fx-font-size: 13px;
     -fx-text-fill: -bm-text-muted;
+}
+
+/* cards de indicador */
+.stat-card {
+    -fx-background-color: -bm-surface;
+    -fx-background-radius: 12;
+    -fx-effect: dropshadow(gaussian, rgba(17, 54, 36, 0.08), 12, 0, 0, 2);
+}
+
+.stat-card-bar {
+    -fx-background-color: -bm-green-600;
+    -fx-background-radius: 12 0 0 12;
+}
+
+.stat-card.warning .stat-card-bar {
+    -fx-background-color: -bm-amber-600;
+}
+
+.stat-card-content {
+    -fx-padding: 16 20 16 20;
+}
+
+.stat-card-label {
+    -fx-font-size: 13px;
+    -fx-text-fill: -bm-text-muted;
+}
+
+.stat-card-value {
+    -fx-font-size: 28px;
+    -fx-font-weight: 700;
+    -fx-text-fill: -bm-text;
+}
+
+/* tabela */
+.table-view {
+    -fx-background-color: -bm-surface;
+    -fx-background-radius: 12;
+    -fx-border-radius: 12;
+    -fx-border-color: transparent;
+    -fx-padding: 0;
+    -fx-effect: dropshadow(gaussian, rgba(17, 54, 36, 0.08), 12, 0, 0, 2);
+}
+
+.table-view:focused {
+    -fx-background-color: -bm-surface;
+    -fx-background-insets: 0;
+}
+
+.table-view .column-header-background {
+    -fx-background-color: -bm-green-900;
+    -fx-background-radius: 12 12 0 0;
+}
+
+.table-view .column-header-background .filler {
+    -fx-background-color: transparent;
+}
+
+.table-view .column-header {
+    -fx-background-color: transparent;
+    -fx-size: 44;
+    -fx-border-color: transparent;
+}
+
+.table-view .column-header .label {
+    -fx-text-fill: -bm-amber-500;
+    -fx-font-size: 13px;
+    -fx-font-weight: 700;
+    -fx-alignment: CENTER_LEFT;
+    -fx-padding: 0 12 0 12;
+}
+
+.table-view .table-row-cell {
+    -fx-background-color: -bm-surface;
+    -fx-border-color: transparent;
+}
+
+.table-view .table-row-cell:even {
+    -fx-background-color: -bm-row-alt;
+}
+
+.table-view .table-row-cell:hover {
+    -fx-background-color: -bm-row-hover;
+}
+
+.table-view .table-row-cell:selected {
+    -fx-background-color: -bm-row-selected;
+}
+
+.table-view .table-row-cell:empty {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+.table-view .table-cell {
+    -fx-text-fill: -bm-text;
+    -fx-font-size: 13px;
+    -fx-padding: 0 12 0 12;
+    -fx-border-color: transparent;
+}
+
+.table-view .table-row-cell:selected .table-cell {
+    -fx-text-fill: -bm-text;
+}
+
+/* badge de status */
+.badge {
+    -fx-background-radius: 999;
+    -fx-padding: 0 10 0 10;
+    -fx-min-height: 22;
+    -fx-pref-height: 22;
+    -fx-font-size: 12px;
+    -fx-font-weight: 600;
+    -fx-alignment: CENTER;
+}
+
+.badge-warning {
+    -fx-background-color: -bm-warning-bg;
+    -fx-text-fill: -bm-warning-text;
+}
+
+.badge-danger {
+    -fx-background-color: -bm-danger-bg;
+    -fx-text-fill: -bm-danger-text;
+}
+
+.badge-success {
+    -fx-background-color: -bm-success-bg;
+    -fx-text-fill: -bm-success-text;
+}
+
+/* botoes */
+.button {
+    -fx-min-height: 36;
+    -fx-pref-height: 36;
+    -fx-padding: 0 16 0 16;
+    -fx-background-radius: 8;
+    -fx-font-size: 13px;
+    -fx-font-weight: 700;
+    -fx-cursor: hand;
+}
+
+.btn-primary {
+    -fx-background-color: -bm-green-600;
+    -fx-text-fill: white;
+}
+
+.btn-primary:hover {
+    -fx-background-color: -bm-green-700;
+}
+
+.btn-secondary {
+    -fx-background-color: -bm-neutral;
+    -fx-text-fill: -bm-text;
+}
+
+.btn-secondary:hover {
+    -fx-background-color: derive(-bm-neutral, -6%);
+}
+
+.btn-danger {
+    -fx-background-color: -bm-danger;
+    -fx-text-fill: white;
+}
+
+.btn-danger:hover {
+    -fx-background-color: derive(-bm-danger, -8%);
+}
+
+.btn-link {
+    -fx-background-color: transparent;
+    -fx-text-fill: -bm-green-600;
+    -fx-padding: 0 4 0 4;
+}
+
+.btn-link:hover {
+    -fx-underline: true;
+}
+
+.btn-icon {
+    -fx-min-width: 32;
+    -fx-pref-width: 32;
+    -fx-min-height: 32;
+    -fx-pref-height: 32;
+    -fx-padding: 0;
+}
+
+.button:disabled {
+    -fx-opacity: 0.45;
+}
+
+/* toast */
+.toast {
+    -fx-background-color: -bm-green-900;
+    -fx-background-radius: 8;
+    -fx-padding: 12 16 12 16;
+    -fx-effect: dropshadow(gaussian, rgba(17, 54, 36, 0.25), 12, 0, 0, 2);
+}
+
+.toast-icon {
+    -fx-icon-color: -bm-success-bg;
+    -fx-icon-size: 16;
+}
+
+.toast-text {
+    -fx-text-fill: white;
+    -fx-font-size: 13px;
 }
