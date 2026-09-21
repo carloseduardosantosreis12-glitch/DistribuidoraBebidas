@@ -1,0 +1,80 @@
+/* components.css - sidebar, navegacao e cabecalho de pagina */
+
+.sidebar {
+    -fx-background-color: linear-gradient(to bottom, -bm-green-900, #1F6A41);
+    -fx-padding: 20 12 20 12;
+    -fx-spacing: 4;
+}
+
+.brand {
+    -fx-padding: 0 8 16 8;
+}
+
+.brand-icon {
+    -fx-icon-color: -bm-amber-500;
+    -fx-icon-size: 22;
+}
+
+.brand-title {
+    -fx-text-fill: -bm-amber-500;
+    -fx-font-size: 22px;
+    -fx-font-weight: 700;
+}
+
+.brand-subtitle {
+    -fx-text-fill: -bm-on-sidebar-muted;
+    -fx-font-size: 12px;
+}
+
+.nav-item {
+    -fx-min-height: 40;
+    -fx-pref-height: 40;
+    -fx-padding: 0 12 0 12;
+    -fx-background-radius: 8;
+    -fx-cursor: hand;
+}
+
+.nav-item .nav-icon {
+    -fx-icon-color: -bm-on-sidebar;
+    -fx-icon-size: 16;
+}
+
+.nav-item .nav-label {
+    -fx-text-fill: -bm-on-sidebar;
+    -fx-font-size: 14px;
+    -fx-font-weight: 500;
+}
+
+.nav-item:hover {
+    -fx-background-color: rgba(255, 255, 255, 0.08);
+}
+
+.nav-item.active {
+    -fx-background-color: -bm-amber-500;
+}
+
+.nav-item.active .nav-icon {
+    -fx-icon-color: -bm-green-900;
+}
+
+.nav-item.active .nav-label {
+    -fx-text-fill: -bm-green-900;
+    -fx-font-weight: 700;
+}
+
+.sidebar-footer {
+    -fx-text-fill: -bm-on-sidebar-muted;
+    -fx-font-size: 12px;
+    -fx-padding: 8;
+}
+
+.page-title {
+    -fx-font-size: 24px;
+    -fx-font-weight: 700;
+    -fx-text-fill: -bm-text;
+}
+
+.page-subtitle {
+    -fx-font-size: 13px;
+    -fx-text-fill: -bm-text-muted;
+}

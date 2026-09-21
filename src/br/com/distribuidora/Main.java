@@ -1,6 +1,6 @@
 package br.com.distribuidora;
 
-import br.com.distribuidora.view.DashboardView;
+import br.com.distribuidora.view.MainLayout;
 import javafx.application.Application;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
@@ -16,12 +16,12 @@ public class Main extends Application {
 
     @Override
     public void start(Stage stage) {
-        DashboardView dashboard = new DashboardView(25, 12, 8);
-        Scene scene = new Scene(dashboard.getRoot(), INICIAL_W, INICIAL_H);
+        MainLayout layout = new MainLayout();
+        Scene scene = new Scene(layout.getRoot(), INICIAL_W, INICIAL_H);
 
         carregarCss(scene, "/css/tokens.css");
         carregarCss(scene, "/css/base.css");
-        carregarCss(scene, "/css/style.css");
+        carregarCss(scene, "/css/components.css");
 
         Rectangle2D area = Screen.getPrimary().getVisualBounds();
         stage.setMinWidth(MIN_W);
