@@ -1,0 +1,43 @@
+.root {
+    /* marca */
+    -bm-green-900: #113624;
+    -bm-green-700: #185033;
+    -bm-green-600: #1C6D44;
+    -bm-amber-500: #FFC233;
+    -bm-amber-600: #E8A318;
+
+    /* neutros */
+    -bm-bg: #F5F6F8;
+    -bm-surface: #FFFFFF;
+    -bm-row-alt: #F8FAF9;
+    -bm-row-hover: #EEF4F0;
+    -bm-row-selected: #DDEEE3;
+    -bm-border: #D5DDD8;
+    -bm-border-strong: #8FA097;
+    -bm-text: #13261B;
+    -bm-text-muted: #5B6B62;
+    -bm-placeholder: #6B7A72;
+    -bm-neutral: #E3E8E4;
+
+    -bm-on-sidebar: #E6F0EA;
+    -bm-on-sidebar-muted: #CFE3D7;
+
+    /* estados */
+    -bm-danger: #C33A27;
+    -bm-warning-bg: #FFF1CC;
+    -bm-warning-text: #8A5A00;
+    -bm-danger-bg: #FBE3DF;
+    -bm-danger-text: #9B2C1D;
+    -bm-success-bg: #DCF3E4;
+    -bm-success-text: #14532D;
+
+    /* tipografia base */
+    -fx-font-family: "Inter", "Segoe UI", sans-serif;
+    -fx-font-size: 13px;
+    -fx-background-color: -bm-bg;
+
+    /* sobrescreve o azul padrão do JavaFX */
+    -fx-accent: -bm-green-600;
+    -fx-focus-color: -bm-green-600;
+    -fx-faint-focus-color: transparent;
+}
