@@ -17,7 +17,10 @@ import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableCell;
@@ -25,6 +28,8 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
@@ -35,26 +40,33 @@ public class BebidasView {
 
     private final EstoqueController controle = EstoqueController.getInstance();
     private final Runnable onNovaBebida;
+    private final Consumer<Bebida> onEditar;
     private final Consumer<String> notificar;
 
-    public BebidasView(Runnable onNovaBebida, Consumer<String> notificar) {
+    public BebidasView(Runnable onNovaBebida, Consumer<Bebida> onEditar,
+                       Consumer<String> notificar) {
         this.onNovaBebida = onNovaBebida;
+        this.onEditar = onEditar;
         this.notificar = notificar;
     }
 
     public VBox getRoot() {
         List<Bebida> cadastradas = controle.listarBebidas();
 
+        Label subtitulo = new Label();
+        subtitulo.getStyleClass().add("page-subtitle");
+
         PageHeader cabecalho = new PageHeader(
-                "Bebidas",
-                cadastradas.size() == 1
-                        ? "1 bebida cadastrada"
-                        : cadastradas.size() + " bebidas cadastradas",
+                new Label("Bebidas"),
+                subtitulo,
                 novoBebida()
         );
 
         ObservableList<Bebida> base = FXCollections.observableArrayList(cadastradas);
         FilteredList<Bebida> filtrada = new FilteredList<>(base);
+        subtitulo.setText(nomearSubtitulo(base.size()));
+        base.addListener((ListChangeListener<Bebida>) c ->
+                subtitulo.setText(nomearSubtitulo(base.size())));
 
         TextField busca = new TextField();
         busca.setPromptText("Buscar por nome, marca ou categoria");
@@ -80,12 +92,30 @@ public class BebidasView {
 
         tabela.setPlaceholder(placeholderVazio(base));
 
+        tabela.setOnKeyPressed(event -> {
+            if (event.getCode() == KeyCode.DELETE) {
+                Bebida selecionada = tabela.getSelectionModel().getSelectedItem();
+                if (selecionada != null) {
+                    confirmarExclusao(selecionada);
+                    event.consume();
+                }
+            }
+        });
+
         HBox barra = new HBox(16, busca, categorias);
         barra.setAlignment(Pos.CENTER_LEFT);
 
         VBox raiz = new VBox(20, cabecalho, barra, tabela, rodape);
         raiz.setMaxWidth(Double.MAX_VALUE);
         VBox.setVgrow(tabela, Priority.ALWAYS);
+
+        raiz.addEventHandler(KeyEvent.KEY_PRESSED, event -> {
+            if (event.isControlDown() && event.getCode() == KeyCode.N) {
+                onNovaBebida.run();
+                event.consume();
+            }
+        });
+
         return raiz;
     }
 
@@ -167,9 +197,15 @@ public class BebidasView {
 
             {
                 Button editar = botaoIcone(FontAwesomeSolid.PEN, "Editar bebida",
-                        () -> notificar.accept("Edição disponível na próxima etapa."));
+                        () -> {
+                            Bebida selecionada = getTableView().getItems().get(getIndex());
+                            onEditar.accept(selecionada);
+                        });
                 Button excluir = botaoIcone(FontAwesomeSolid.TRASH_ALT, "Excluir bebida",
-                        () -> notificar.accept("Exclusão disponível na próxima etapa."));
+                        () -> {
+                            Bebida selecionada = getTableView().getItems().get(getIndex());
+                            confirmarExclusao(selecionada);
+                        });
                 excluir.getStyleClass().add("btn-danger-icon");
                 caixa.getChildren().addAll(editar, excluir);
                 caixa.setAlignment(Pos.CENTER);
@@ -180,6 +216,27 @@ public class BebidasView {
                 setGraphic(vazio ? null : caixa);
             }
         };
+    }
+
+    private void confirmarExclusao(Bebida bebida) {
+        Alert alerta = new Alert(Alert.AlertType.CONFIRMATION);
+        alerta.setTitle("Excluir bebida");
+        alerta.setHeaderText("Excluir " + bebida.getNome() + "?");
+        alerta.setContentText("Esta ação não poderá ser desfeita. Tem certeza "
+                + "de que deseja excluir esta bebida do estoque?");
+        alerta.getDialogPane().getStyleClass().add("dialog-pane");
+
+        ButtonType confirmar = new ButtonType("Excluir", ButtonBar.ButtonData.OK_DONE);
+        ButtonType cancelar = new ButtonType("Cancelar", ButtonBar.ButtonData.CANCEL_CLOSE);
+        alerta.getButtonTypes().setAll(confirmar, cancelar);
+
+        alerta.showAndWait()
+                .filter(resposta -> resposta == confirmar)
+                .ifPresent(resposta -> {
+                    controle.excluirBebida(bebida.getId());
+                    notificar.accept("Bebida excluída: " + bebida.getNome()
+                            + " (" + Formatadores.codigo(bebida.getId() + 1) + ")");
+                });
     }
 
     private Button botaoIcone(FontAwesomeSolid codigo, String dica, Runnable acao) {
@@ -227,5 +284,9 @@ public class BebidasView {
 
     private String nomearRodape(int filtrados, int total) {
         return "Mostrando " + filtrados + " de " + total + " bebidas";
+    }
+
+    private String nomearSubtitulo(int total) {
+        return total == 1 ? "1 bebida cadastrada" : total + " bebidas cadastradas";
     }
 }

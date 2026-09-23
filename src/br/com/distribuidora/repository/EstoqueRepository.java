@@ -45,6 +45,28 @@ public class EstoqueRepository {
         bebidas.add(bebida);
     }
 
+    public void atualizar(Bebida atualizada) {
+        for (int i = 0; i < bebidas.size(); i++) {
+            if (bebidas.get(i).getId() == atualizada.getId()) {
+                bebidas.set(i, atualizada);
+                return;
+            }
+        }
+    }
+
+    public void remover(int id) {
+        bebidas.removeIf(bebida -> bebida.getId() == id);
+    }
+
+    public Bebida buscarPorId(int id) {
+        for (Bebida bebida : bebidas) {
+            if (bebida.getId() == id) {
+                return bebida;
+            }
+        }
+        return null;
+    }
+
     private int proximoId() {
         int max = 0;
         for (Bebida b : bebidas) {

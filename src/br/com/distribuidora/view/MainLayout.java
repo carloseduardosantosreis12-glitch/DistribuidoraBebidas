@@ -1,6 +1,7 @@
 package br.com.distribuidora.view;
 
 import br.com.distribuidora.controller.ConfiguracaoController;
+import br.com.distribuidora.model.Bebida;
 import br.com.distribuidora.view.components.Toast;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -76,13 +77,25 @@ public class MainLayout {
     private Node novoBebidas() {
         return new BebidasView(
                 () -> navegar(Sidebar.Item.CADASTRAR),
+                this::navegarEdicao,
                 mensagem -> Toast.mostrar(camadaToast, mensagem)
         ).getRoot();
     }
 
+    private void navegarEdicao(Bebida bebida) {
+        sidebar.setActive(Sidebar.Item.BEBIDAS);
+        conteudo.setContent(new CadastroBebidaView(
+                bebida,
+                mensagem -> Toast.mostrar(camadaToast, mensagem),
+                () -> navegar(Sidebar.Item.BEBIDAS),
+                () -> navegar(Sidebar.Item.BEBIDAS)
+        ).getRoot());
+    }
+
     private Node novoCadastro() {
         return new CadastroBebidaView(
-                mensagem -> Toast.mostrar(camadaToast, mensagem)
+                mensagem -> Toast.mostrar(camadaToast, mensagem),
+                () -> navegar(Sidebar.Item.BEBIDAS)
         ).getRoot();
     }
 

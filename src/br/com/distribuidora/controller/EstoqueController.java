@@ -29,6 +29,14 @@ public class EstoqueController {
         estoque.adicionar(bebida);
     }
 
+    public void atualizarBebida(Bebida bebida) {
+        estoque.atualizar(bebida);
+    }
+
+    public void excluirBebida(int id) {
+        estoque.remover(id);
+    }
+
     public List<Bebida> ultimasCadastradas(int quantidade) {
         List<Bebida> todas = estoque.listar();
         if (todas.size() <= quantidade) {

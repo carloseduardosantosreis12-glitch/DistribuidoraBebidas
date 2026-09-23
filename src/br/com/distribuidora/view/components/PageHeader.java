@@ -39,4 +39,28 @@ public class PageHeader extends HBox {
             getChildren().add(acao);
         }
     }
+
+    public PageHeader(Label titulo, Label subtitulo, Node acao) {
+        getStyleClass().add("page-header");
+        setAlignment(Pos.CENTER_LEFT);
+
+        VBox textos = new VBox(4);
+
+        if (titulo != null) {
+            textos.getChildren().add(titulo);
+        }
+        if (subtitulo != null) {
+            textos.getChildren().add(subtitulo);
+        }
+
+        getChildren().add(textos);
+
+        Region espaco = new Region();
+        HBox.setHgrow(espaco, Priority.ALWAYS);
+        getChildren().add(espaco);
+
+        if (acao != null) {
+            getChildren().add(acao);
+        }
+    }
 }

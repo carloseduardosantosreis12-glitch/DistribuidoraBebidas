@@ -518,3 +518,29 @@
     -fx-background-color: -bm-neutral;
     -fx-text-fill: -bm-text-muted;
 }
+
+/* dialogs (alertas de confirmacao) */
+.dialog-pane {
+    -fx-background-color: -bm-surface;
+}
+
+.dialog-pane > .header-panel {
+    -fx-background-color: -bm-surface;
+    -fx-padding: 12 16 8 16;
+}
+
+.dialog-pane > .header-panel .label {
+    -fx-text-fill: -bm-text;
+    -fx-font-size: 15px;
+    -fx-font-weight: 700;
+}
+
+.dialog-pane > .content.label {
+    -fx-text-fill: -bm-text-muted;
+    -fx-font-size: 13px;
+}
+
+.dialog-pane > .button-bar > .container {
+    -fx-padding: 8 16 16 16;
+    -fx-spacing: 10;
+}

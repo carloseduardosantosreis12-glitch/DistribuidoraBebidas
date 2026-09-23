@@ -40,6 +40,15 @@
     -fx-border-width: 2;
 }
 
+.input-error {
+    -fx-border-color: -bm-danger;
+}
+
+.combo-box.input-error > .list-cell,
+.date-picker.input-error > .text-field {
+    -fx-text-fill: -bm-text;
+}
+
 /* rotulos e mensagens de campo */
 .field-label {
     -fx-font-size: 13px;
