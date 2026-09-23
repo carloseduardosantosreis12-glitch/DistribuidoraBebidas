@@ -212,24 +212,29 @@ public class CadastroBebidaView {
         int quantidade = parseInteiro(campoQuantidade.getText());
         LocalDate validade = campoValidade.getValue();
 
-        if (bebidaExistente == null) {
-            Bebida bebida = new Bebida(0, nome, marca, categoria, preco, quantidade);
-            bebida.setValidade(validade);
-            EstoqueController.getInstance().cadastrarBebida(bebida);
-            limparCampos();
-            notificar.accept("Bebida cadastrada com sucesso!");
-        } else {
-            bebidaExistente.setNome(nome);
-            bebidaExistente.setMarca(marca);
-            bebidaExistente.setCategoria(categoria);
-            bebidaExistente.setPreco(preco);
-            bebidaExistente.setEstoque(quantidade);
-            bebidaExistente.setValidade(validade);
-            EstoqueController.getInstance().atualizarBebida(bebidaExistente);
-            notificar.accept("Bebida atualizada com sucesso!");
-            if (onSalvoEdicao != null) {
-                onSalvoEdicao.run();
+        LoadingService.central("Salvando bebida...");
+        try {
+            if (bebidaExistente == null) {
+                Bebida bebida = new Bebida(0, nome, marca, categoria, preco, quantidade);
+                bebida.setValidade(validade);
+                EstoqueController.getInstance().cadastrarBebida(bebida);
+                limparCampos();
+                notificar.accept("Bebida cadastrada com sucesso!");
+            } else {
+                bebidaExistente.setNome(nome);
+                bebidaExistente.setMarca(marca);
+                bebidaExistente.setCategoria(categoria);
+                bebidaExistente.setPreco(preco);
+                bebidaExistente.setEstoque(quantidade);
+                bebidaExistente.setValidade(validade);
+                EstoqueController.getInstance().atualizarBebida(bebidaExistente);
+                notificar.accept("Bebida atualizada com sucesso!");
+                if (onSalvoEdicao != null) {
+                    onSalvoEdicao.run();
+                }
             }
+        } finally {
+            LoadingService.parar();
         }
     }
 

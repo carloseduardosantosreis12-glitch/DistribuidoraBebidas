@@ -23,6 +23,8 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ConfiguracaoView {
 
@@ -31,6 +33,10 @@ public class ConfiguracaoView {
 
     private TextField campoEmpresa;
     private TextField campoLimite;
+    private final List<CheckBox> checksPagamento = new ArrayList<>();
+    private ToggleButton togglePermitirDesconto;
+    private TextField campoLimiteDesconto;
+    private ToggleButton toggleImprimirComprovante;
 
     public ConfiguracaoView(Runnable onSalvar) {
         this.onSalvar = onSalvar;
@@ -52,6 +58,10 @@ public class ConfiguracaoView {
         Tab abaGerais = new Tab("Configurações Gerais", criarAbaGerais());
 
         abas.getTabs().addAll(abaEmpresa, abaEstoque, abaVendas, abaAparencia, abaGerais);
+        abas.getSelectionModel().selectedIndexProperty().addListener((obs, o, n) -> {
+            LoadingService.barra();
+            LoadingService.parar();
+        });
 
         VBox raiz = new VBox(20, cabecalho, abas);
         raiz.setMaxWidth(Double.MAX_VALUE);
@@ -230,26 +240,28 @@ public class ConfiguracaoView {
         tituloPagamento.getStyleClass().add("section-title");
 
         VBox listaPagamentos = new VBox(10);
-        listaPagamentos.getChildren().addAll(
-                criarCheckBox("Dinheiro", true),
-                criarCheckBox("Cartão de crédito", true),
-                criarCheckBox("Cartão de débito", true),
-                criarCheckBox("Pix", true),
-                criarCheckBox("Transferência bancária", true)
-        );
+        checksPagamento.clear();
+        List<String> habilitadas = configuracao.formasPagamentoHabilitadas();
+        for (String forma : configuracao.formasPagamentoPadrao()) {
+            CheckBox check = criarCheckBox(forma, habilitadas.contains(forma));
+            checksPagamento.add(check);
+            listaPagamentos.getChildren().add(check);
+        }
 
         Label tituloDesconto = new Label("Descontos");
         tituloDesconto.getStyleClass().add("section-title");
 
-        HBox permitirDesconto = criarSwitch("Permitir desconto nas vendas", true);
+        togglePermitirDesconto = novoSwitch(configuracao.permitirDesconto());
+        HBox linhaPermitirDesconto = linhaSwitch(
+                "Permitir desconto nas vendas", togglePermitirDesconto);
 
-        TextField limiteDesconto = new TextField("10");
-        limiteDesconto.setPrefWidth(110);
+        campoLimiteDesconto = new TextField(limiteTexto(configuracao.limiteDescontoPercentual()));
+        campoLimiteDesconto.setPrefWidth(110);
 
         Label sufixo = new Label("%");
         sufixo.getStyleClass().add("field-label");
 
-        VBox grupoLimite = criarGrupoCampo("Limite de desconto (%)", limiteDesconto);
+        VBox grupoLimite = criarGrupoCampo("Limite de desconto (%)", campoLimiteDesconto);
 
         HBox linhaLimite = new HBox(10, grupoLimite, sufixo);
         linhaLimite.setAlignment(Pos.CENTER_LEFT);
@@ -258,9 +270,10 @@ public class ConfiguracaoView {
         tituloFluxo.getStyleClass().add("section-title");
 
         VBox fluxo = new VBox(10);
+        toggleImprimirComprovante = novoSwitch(configuracao.imprimirComprovante());
         fluxo.getChildren().addAll(
-                criarSwitch("Exigir confirmação antes de cancelar venda", true),
-                criarSwitch("Imprimir comprovante automaticamente", false)
+                linhaSwitch("Exigir confirmação antes de cancelar venda", novoSwitch(true)),
+                linhaSwitch("Imprimir comprovante automaticamente", toggleImprimirComprovante)
         );
 
         Button salvar = new Button("Salvar");
@@ -274,17 +287,31 @@ public class ConfiguracaoView {
         rodape.setAlignment(Pos.CENTER_RIGHT);
 
         salvar.setOnAction(event -> {
-            String limite = limiteDesconto.getText().trim();
-
+            double limite;
             try {
-                Double.parseDouble(limite.replace(",", "."));
+                limite = Double.parseDouble(campoLimiteDesconto.getText().trim().replace(",", "."));
+                if (limite < 0) {
+                    throw new NumberFormatException();
+                }
             } catch (NumberFormatException e) {
                 mostrarFeedback(feedback,
                         "O limite de desconto deve ser um número válido.", false);
                 return;
             }
 
-            mostrarFeedback(feedback, "Preferências de vendas salvas!", true);
+            List<String> habilitadasSalvar = checksPagamento.stream()
+                    .filter(CheckBox::isSelected)
+                    .map(CheckBox::getText)
+                    .toList();
+            try {
+                configuracao.salvarFormasPagamento(habilitadasSalvar);
+                configuracao.salvarPermitirDesconto(togglePermitirDesconto.isSelected());
+                configuracao.salvarLimiteDescontoPercentual(limite);
+                configuracao.salvarImprimirComprovante(toggleImprimirComprovante.isSelected());
+                mostrarFeedback(feedback, "Preferências de vendas salvas!", true);
+            } catch (IOException e) {
+                mostrarFeedback(feedback, "Erro ao salvar as preferências de vendas.", false);
+            }
         });
 
         conteudo.getChildren().addAll(
@@ -292,7 +319,7 @@ public class ConfiguracaoView {
                 tituloPagamento,
                 listaPagamentos,
                 tituloDesconto,
-                permitirDesconto,
+                linhaPermitirDesconto,
                 linhaLimite,
                 tituloFluxo,
                 fluxo,
@@ -300,6 +327,13 @@ public class ConfiguracaoView {
         );
 
         return conteudo;
+    }
+
+    private String limiteTexto(double valor) {
+        if (valor == Math.floor(valor)) {
+            return String.valueOf((long) valor);
+        }
+        return String.valueOf(valor).replace('.', ',');
     }
 
     // =========================
@@ -510,11 +544,18 @@ public class ConfiguracaoView {
     }
 
     private HBox criarSwitch(String texto, boolean ativo) {
+        return linhaSwitch(texto, novoSwitch(ativo));
+    }
+
+    private ToggleButton novoSwitch(boolean ativo) {
         ToggleButton toggle = new ToggleButton();
         toggle.setSelected(ativo);
         toggle.setFocusTraversable(false);
         toggle.getStyleClass().add("switch");
+        return toggle;
+    }
 
+    private HBox linhaSwitch(String texto, ToggleButton toggle) {
         Label label = new Label(texto);
         label.getStyleClass().add("field-label");
 

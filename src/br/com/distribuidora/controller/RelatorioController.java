@@ -1,7 +1,10 @@
 package br.com.distribuidora.controller;
 
 import br.com.distribuidora.model.Bebida;
+import br.com.distribuidora.model.ItemVenda;
+import br.com.distribuidora.model.Venda;
 import br.com.distribuidora.repository.ConfiguracaoStore;
+import br.com.distribuidora.repository.VendaRepository;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
@@ -12,17 +15,7 @@ public class RelatorioController {
     private static final RelatorioController INSTANCIA = new RelatorioController();
 
     private final ConfiguracaoStore config = ConfiguracaoStore.getInstance();
-
-    private final List<VendaMock> vendas = List.of(
-            new VendaMock("02/01/2026", "V-1001", "Bar do Zé", "Carlos", 5, "Pix", "187,50", "Concluída"),
-            new VendaMock("03/01/2026", "V-1002", "Mercado Central", "Ana", 12, "Cartão de crédito", "540,00", "Concluída"),
-            new VendaMock("05/01/2026", "V-1003", "Churrascaria Gaúcha", "Carlos", 3, "Dinheiro", "89,90", "Pendente"),
-            new VendaMock("08/01/2026", "V-1004", "Conveniência Estrela", "Ana", 8, "Pix", "320,40", "Concluída"),
-            new VendaMock("10/01/2026", "V-1005", "Bar do Zé", "Paulo", 15, "Transferência", "950,00", "Cancelada"),
-            new VendaMock("12/01/2026", "V-1006", "Restaurante Sabor", "Paulo", 20, "Cartão de débito", "1230,75", "Concluída"),
-            new VendaMock("15/01/2026", "V-1007", "Mercado Central", "Ana", 6, "Pix", "275,30", "Pendente"),
-            new VendaMock("18/01/2026", "V-1008", "Depósito do Nando", "Carlos", 30, "Boleto", "2800,00", "Concluída")
-    );
+    private final VendaRepository vendas = VendaRepository.getInstance();
 
     private final List<FinanceiroMock> financeiro = List.of(
             new FinanceiroMock("02/01/2026", "Venda à vista", "Receita", "Vendas", "2350,00"),
@@ -53,8 +46,8 @@ public class RelatorioController {
         return config.getMoeda();
     }
 
-    public List<VendaMock> listarVendas() {
-        return vendas;
+    public List<Venda> listarVendas() {
+        return vendas.listar();
     }
 
     public List<FinanceiroMock> listarFinanceiro() {
@@ -104,31 +97,34 @@ public class RelatorioController {
     }
 
     public int totalVendas() {
-        return vendas.size();
+        return vendas.listar().size();
     }
 
     public BigDecimal valorTotalVendas() {
         BigDecimal total = BigDecimal.ZERO;
-        for (VendaMock venda : vendas) {
-            total = total.add(venda.getValor());
+        for (Venda venda : vendas.listar()) {
+            total = total.add(venda.valorTotal());
         }
         return total;
     }
 
     public int produtosVendidos() {
         int total = 0;
-        for (VendaMock venda : vendas) {
-            total += venda.getQuantidadeItens();
+        for (Venda venda : vendas.listar()) {
+            for (ItemVenda item : venda.getItens()) {
+                total += item.getQuantidade();
+            }
         }
         return total;
     }
 
     public BigDecimal ticketMedio() {
-        if (vendas.isEmpty()) {
+        List<Venda> registradas = vendas.listar();
+        if (registradas.isEmpty()) {
             return BigDecimal.ZERO;
         }
         return valorTotalVendas().divide(
-                BigDecimal.valueOf(vendas.size()), 2, RoundingMode.HALF_UP);
+                BigDecimal.valueOf(registradas.size()), 2, RoundingMode.HALF_UP);
     }
 
     public BigDecimal receitas() {
@@ -155,61 +151,6 @@ public class RelatorioController {
 
     private static BigDecimal toBigDecimal(String valor) {
         return new BigDecimal(valor.replace(",", "."));
-    }
-
-    public static class VendaMock {
-        private final String data;
-        private final String numero;
-        private final String cliente;
-        private final String vendedor;
-        private final int quantidadeItens;
-        private final String pagamento;
-        private final BigDecimal valor;
-        private final String status;
-
-        public VendaMock(String data, String numero, String cliente, String vendedor,
-                         int quantidadeItens, String pagamento, String valor, String status) {
-            this.data = data;
-            this.numero = numero;
-            this.cliente = cliente;
-            this.vendedor = vendedor;
-            this.quantidadeItens = quantidadeItens;
-            this.pagamento = pagamento;
-            this.valor = toBigDecimal(valor);
-            this.status = status;
-        }
-
-        public String getData() {
-            return data;
-        }
-
-        public String getNumero() {
-            return numero;
-        }
-
-        public String getCliente() {
-            return cliente;
-        }
-
-        public String getVendedor() {
-            return vendedor;
-        }
-
-        public int getQuantidadeItens() {
-            return quantidadeItens;
-        }
-
-        public String getPagamento() {
-            return pagamento;
-        }
-
-        public BigDecimal getValor() {
-            return valor;
-        }
-
-        public String getStatus() {
-            return status;
-        }
     }
 
     public static class EstoqueMock {

@@ -5,13 +5,16 @@ import br.com.distribuidora.controller.RelatorioController.CompraMock;
 import br.com.distribuidora.controller.RelatorioController.EstoqueMock;
 import br.com.distribuidora.controller.RelatorioController.FinanceiroMock;
 import br.com.distribuidora.controller.RelatorioController.ProdutoMock;
-import br.com.distribuidora.controller.RelatorioController.VendaMock;
+import br.com.distribuidora.model.ItemVenda;
+import br.com.distribuidora.model.Venda;
 import br.com.distribuidora.util.Formatadores;
 import br.com.distribuidora.view.components.PageHeader;
 import br.com.distribuidora.view.components.StatCard;
 import br.com.distribuidora.view.components.StatusBadge;
 import java.math.BigDecimal;
 import java.util.List;
+import javafx.beans.property.ReadOnlyObjectWrapper;
+import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
@@ -77,6 +80,10 @@ public class RelatorioView {
         Tab abaCompras = new Tab("Compras", criarAbaCompras());
 
         abas.getTabs().addAll(abaVendas, abaEstoque, abaProdutos, abaFinanceiro, abaCompras);
+        abas.getSelectionModel().selectedIndexProperty().addListener((obs, o, n) -> {
+            LoadingService.barra();
+            LoadingService.parar();
+        });
 
         Label tituloGraficos = new Label("Gráficos");
         tituloGraficos.getStyleClass().add("section-title");
@@ -133,15 +140,19 @@ public class RelatorioView {
         linha.setAlignment(Pos.BOTTOM_LEFT);
 
         filtrar.setOnAction(event -> {
+            LoadingService.barra();
             feedbackFiltros.setText("Relatório gerado para o período selecionado.");
             feedbackFiltros.setVisible(true);
+            LoadingService.parar();
         });
 
         limpar.setOnAction(event -> {
+            LoadingService.barra();
             dataInicial.setValue(null);
             dataFinal.setValue(null);
             feedbackFiltros.setText("Filtros de período limpos.");
             feedbackFiltros.setVisible(true);
+            LoadingService.parar();
         });
 
         card.getChildren().addAll(titulo, linha, feedbackFiltros);
@@ -176,107 +187,98 @@ public class RelatorioView {
     private Node criarAbaVendas() {
         VBox conteudo = new VBox(18);
 
-        ObservableList<VendaMock> dados = FXCollections.observableArrayList(
-                relatorio.listarVendas());
-
-        ComboBox<String> cliente = new ComboBox<>();
-        cliente.getItems().addAll("Todos", "Bar do Zé", "Mercado Central",
-                "Churrascaria Gaúcha", "Conveniência Estrela", "Restaurante Sabor", "Depósito do Nando");
-        cliente.setValue("Todos");
-        cliente.setPrefWidth(170);
-
-        ComboBox<String> vendedor = new ComboBox<>();
-        vendedor.getItems().addAll("Todos", "Carlos", "Ana", "Paulo");
-        vendedor.setValue("Todos");
-        vendedor.setPrefWidth(140);
+        List<Venda> registradas = relatorio.listarVendas();
+        ObservableList<Venda> dados = FXCollections.observableArrayList(registradas);
 
         ComboBox<String> pagamento = new ComboBox<>();
-        pagamento.getItems().addAll("Todos", "Pix", "Cartão de crédito", "Cartão de débito",
-                "Dinheiro", "Transferência", "Boleto");
+        pagamento.getItems().add("Todos");
+        registradas.stream().map(Venda::getFormaPagamento).distinct().sorted()
+                .forEach(pagamento.getItems()::add);
         pagamento.setValue("Todos");
-        pagamento.setPrefWidth(170);
+        pagamento.setPrefWidth(220);
 
         ComboBox<String> status = new ComboBox<>();
-        status.getItems().addAll("Todos", "Concluída", "Pendente", "Cancelada");
+        status.getItems().add("Todos");
+        registradas.stream().map(Venda::getStatus).distinct().sorted()
+                .forEach(status.getItems()::add);
         status.setValue("Todos");
-        status.setPrefWidth(140);
+        status.setPrefWidth(160);
 
         HBox filtros = new HBox(14,
-                criarGrupoCampo("Cliente", cliente),
-                criarGrupoCampo("Vendedor", vendedor),
                 criarGrupoCampo("Forma de pagamento", pagamento),
                 criarGrupoCampo("Status", status));
         filtros.setAlignment(Pos.CENTER_LEFT);
 
-        FilteredList<VendaMock> filtrada = new FilteredList<>(dados);
-        filtrada.setPredicate(venda -> filtrarVenda(venda, cliente.getValue(),
-                vendedor.getValue(), pagamento.getValue(), status.getValue()));
+        FilteredList<Venda> filtrada = new FilteredList<>(dados);
+        filtrada.setPredicate(venda -> filtrarVenda(venda,
+                pagamento.getValue(), status.getValue()));
 
-        cliente.valueProperty().addListener((obs, o, n) -> filtrada.setPredicate(
-                venda -> filtrarVenda(venda, n, vendedor.getValue(),
-                        pagamento.getValue(), status.getValue())));
-        vendedor.valueProperty().addListener((obs, o, n) -> filtrada.setPredicate(
-                venda -> filtrarVenda(venda, cliente.getValue(), n,
-                        pagamento.getValue(), status.getValue())));
         pagamento.valueProperty().addListener((obs, o, n) -> filtrada.setPredicate(
-                venda -> filtrarVenda(venda, cliente.getValue(), vendedor.getValue(),
-                        n, status.getValue())));
+                venda -> filtrarVenda(venda, n, status.getValue())));
         status.valueProperty().addListener((obs, o, n) -> filtrada.setPredicate(
-                venda -> filtrarVenda(venda, cliente.getValue(), vendedor.getValue(),
-                        pagamento.getValue(), n)));
+                venda -> filtrarVenda(venda, pagamento.getValue(), n)));
 
-        TableView<VendaMock> tabela = new TableView<>(filtrada);
+        TableView<Venda> tabela = new TableView<>(filtrada);
         tabela.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         tabela.setFixedCellSize(44);
         tabela.setMaxHeight(300);
 
-        TableColumn<VendaMock, String> colData = new TableColumn<>("Data");
-        colData.setCellValueFactory(new PropertyValueFactory<>("data"));
+        TableColumn<Venda, String> colData = new TableColumn<>("Data");
+        colData.setCellValueFactory(d ->
+                new ReadOnlyStringWrapper(Formatadores.dataHora(d.getValue().getDataHora())));
+        colData.setMinWidth(120);
 
-        TableColumn<VendaMock, String> colNumero = new TableColumn<>("Número da venda");
-        colNumero.setCellValueFactory(new PropertyValueFactory<>("numero"));
+        TableColumn<Venda, String> colNumero = new TableColumn<>("Número da venda");
+        colNumero.setCellValueFactory(d ->
+                new ReadOnlyStringWrapper("V-" + Formatadores.codigo(d.getValue().getId() + 1)));
+        colNumero.setMinWidth(130);
 
-        TableColumn<VendaMock, String> colCliente = new TableColumn<>("Cliente");
-        colCliente.setCellValueFactory(new PropertyValueFactory<>("cliente"));
-
-        TableColumn<VendaMock, String> colVendedor = new TableColumn<>("Vendedor");
-        colVendedor.setCellValueFactory(new PropertyValueFactory<>("vendedor"));
-
-        TableColumn<VendaMock, Integer> colItens = new TableColumn<>("Qtd. itens");
+        TableColumn<Venda, Integer> colItens = new TableColumn<>("Qtd. itens");
         colItens.getStyleClass().add("numeric-column");
-        colItens.setCellValueFactory(new PropertyValueFactory<>("quantidadeItens"));
+        colItens.setCellValueFactory(d -> new ReadOnlyObjectWrapper<>(totalItens(d.getValue())));
+        colItens.setMinWidth(90);
 
-        TableColumn<VendaMock, String> colPagamento = new TableColumn<>("Forma de pagamento");
-        colPagamento.setCellValueFactory(new PropertyValueFactory<>("pagamento"));
+        TableColumn<Venda, String> colPagamento = new TableColumn<>("Forma de pagamento");
+        colPagamento.setCellValueFactory(d ->
+                new ReadOnlyStringWrapper(d.getValue().getFormaPagamento()));
+        colPagamento.setMinWidth(150);
 
-        TableColumn<VendaMock, BigDecimal> colValor = new TableColumn<>("Valor total");
+        TableColumn<Venda, BigDecimal> colValor = new TableColumn<>("Valor total");
         colValor.getStyleClass().add("numeric-column");
-        colValor.setCellValueFactory(new PropertyValueFactory<>("valor"));
+        colValor.setCellValueFactory(d -> new ReadOnlyObjectWrapper<>(d.getValue().valorTotal()));
         colValor.setCellFactory(col -> new TableCell<>() {
             @Override
             protected void updateItem(BigDecimal valor, boolean vazio) {
                 setText(vazio || valor == null ? "" : formatarValor(valor));
             }
         });
+        colValor.setMinWidth(110);
 
-        TableColumn<VendaMock, String> colStatus = new TableColumn<>("Status");
-        colStatus.setCellValueFactory(new PropertyValueFactory<>("status"));
+        TableColumn<Venda, String> colStatus = new TableColumn<>("Status");
+        colStatus.setCellValueFactory(d -> new ReadOnlyStringWrapper(d.getValue().getStatus()));
         colStatus.setCellFactory(col -> criarCelulaStatus());
+        colStatus.setMinWidth(110);
 
-        tabela.getColumns().addAll(colData, colNumero, colCliente, colVendedor,
-                colItens, colPagamento, colValor, colStatus);
+        tabela.getColumns().addAll(colData, colNumero, colItens, colPagamento, colValor, colStatus);
 
         conteudo.getChildren().addAll(filtros, tabela);
         return conteudo;
     }
 
-    private boolean filtrarVenda(VendaMock venda, String cliente, String vendedor,
-                                 String pagamento, String status) {
-        boolean okCliente = "Todos".equals(cliente) || cliente == null || cliente.equals(venda.getCliente());
-        boolean okVendedor = "Todos".equals(vendedor) || vendedor == null || vendedor.equals(venda.getVendedor());
-        boolean okPagamento = "Todos".equals(pagamento) || pagamento == null || pagamento.equals(venda.getPagamento());
-        boolean okStatus = "Todos".equals(status) || status == null || status.equals(venda.getStatus());
-        return okCliente && okVendedor && okPagamento && okStatus;
+    private int totalItens(Venda venda) {
+        int total = 0;
+        for (ItemVenda item : venda.getItens()) {
+            total += item.getQuantidade();
+        }
+        return total;
+    }
+
+    private boolean filtrarVenda(Venda venda, String pagamento, String status) {
+        boolean okPagamento = "Todos".equals(pagamento) || pagamento == null
+                || pagamento.equals(venda.getFormaPagamento());
+        boolean okStatus = "Todos".equals(status) || status == null
+                || status.equals(venda.getStatus());
+        return okPagamento && okStatus;
     }
 
     // =========================

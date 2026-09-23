@@ -2,6 +2,7 @@ package br.com.distribuidora.view;
 
 import br.com.distribuidora.controller.ConfiguracaoController;
 import br.com.distribuidora.model.Bebida;
+import br.com.distribuidora.view.components.LoadingOverlay;
 import br.com.distribuidora.view.components.Toast;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -32,6 +33,11 @@ public class MainLayout {
         camadaToast.setPickOnBounds(false);
 
         StackPane centro = new StackPane(conteudo, camadaToast);
+
+        LoadingOverlay loading = new LoadingOverlay();
+        LoadingService.registrar(loading);
+        centro.getChildren().add(loading);
+
         centro.setAlignment(Pos.TOP_LEFT);
 
         root.setLeft(sidebar);
@@ -41,6 +47,7 @@ public class MainLayout {
     }
 
     private void navegar(Sidebar.Item item) {
+        LoadingService.barra();
         switch (item) {
             case INICIO -> {
                 sidebar.setActive(item);
@@ -63,8 +70,11 @@ public class MainLayout {
                 conteudo.setContent(novaConfiguracao());
             }
             case VENDAS -> {
+                sidebar.setActive(item);
+                conteudo.setContent(novaVenda());
             }
         }
+        LoadingService.parar();
     }
 
     private Node novoDashboard() {
@@ -101,6 +111,12 @@ public class MainLayout {
 
     private Node novoRelatorio() {
         return new RelatorioView().getRoot();
+    }
+
+    private Node novaVenda() {
+        return new NovaVendaView(
+                mensagem -> Toast.mostrar(camadaToast, mensagem)
+        ).getRoot();
     }
 
     private Node novaConfiguracao() {

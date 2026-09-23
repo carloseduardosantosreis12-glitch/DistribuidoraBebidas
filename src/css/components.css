@@ -123,6 +123,10 @@
     -fx-background-insets: 0;
 }
 
+.table-view.cart-table {
+    -fx-effect: null;
+}
+
 .table-view .column-header-background {
     -fx-background-color: -bm-green-900;
     -fx-background-radius: 12 12 0 0;
@@ -310,6 +314,7 @@
     -fx-background-radius: 8;
     -fx-padding: 12 16 12 16;
     -fx-effect: dropshadow(gaussian, rgba(17, 54, 36, 0.25), 12, 0, 0, 2);
+    -fx-spacing: 10;
 }
 
 .toast-icon {
@@ -320,6 +325,44 @@
 .toast-text {
     -fx-text-fill: white;
     -fx-font-size: 1em;
+}
+
+/* loading */
+.loading-bar {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+}
+
+.loading-bar > .track {
+    -fx-background-color: transparent;
+}
+
+.loading-bar > .bar {
+    -fx-background-color: -bm-amber-500;
+    -fx-background-radius: 0;
+    -fx-padding: 1;
+}
+
+.loading-fundo {
+    -fx-background-color: rgba(17, 24, 21, 0.35);
+}
+
+.loading-card {
+    -fx-background-color: -bm-surface;
+    -fx-background-radius: 12;
+    -fx-padding: 28 40 28 40;
+    -fx-effect: dropshadow(gaussian, rgba(17, 54, 36, 0.25), 16, 0, 0, 4);
+}
+
+.loading-spinner {
+    -fx-progress-color: -bm-green-600;
+}
+
+.loading-label {
+    -fx-font-size: 1em;
+    -fx-font-weight: 600;
+    -fx-text-fill: -bm-text;
+    -fx-alignment: CENTER;
 }
 
 /* paineis e secoes */

@@ -4,12 +4,14 @@ import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 
 public final class Formatadores {
 
     private static final DateTimeFormatter DATA = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+    private static final DateTimeFormatter DATA_HORA = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
     private static final DecimalFormat MOEDA;
 
@@ -30,6 +32,10 @@ public final class Formatadores {
 
     public static String data(LocalDate data) {
         return data == null ? "—" : data.format(DATA);
+    }
+
+    public static String dataHora(LocalDateTime dataHora) {
+        return dataHora == null ? "—" : dataHora.format(DATA_HORA);
     }
 
     public static String codigo(int id) {

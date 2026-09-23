@@ -174,3 +174,164 @@ O radio "Sistema" antes caia sempre em Claro. Agora le o tema real do SO.
 
 ### Verificacao
 - `mvn compile`: OK (apenas warnings do JDK 25).
+
+## [Em revisao] Sistema de loading (UX) (2026-09-22)
+
+Feedback visual quando uma acao troca de tela ou processa dados, para o cliente
+perceber que o app esta respondendo. Dois modos na mesma camada, com tempo minimo
+de 400ms para nunca "piscar" nas operacoes in-memory.
+
+- `src/br/com/distribuidora/view/components/LoadingOverlay.java` (novo)
+  - Camada com dois modos: barra fina no topo (ProgressBar indeterminada, ambar)
+    e overlay central (spinner verde + rotulo) que bloqueia cliques na area de
+    conteudo.
+- `src/br/com/distribuidora/view/LoadingService.java` (novo)
+  - Singleton (padrao do ThemeService): `barra()`, `central(rotulo)`, `parar()`
+    com contador de chamadas aninhadas e tempo minimo de exibicao de 400ms.
+    Arquitetura pronta para operacoes async (Task/cenario real).
+- `src/br/com/distribuidora/view/MainLayout.java`
+  - Camada registrada no `StackPane` central; `navegar(...)` dispara a barra ao
+    trocar de pagina.
+- `src/br/com/distribuidora/view/RelatorioView.java` e `ConfiguracaoView.java`
+  - Troca de abas dispara a barra; "Filtrar"/"Limpar filtros" tambem.
+- `src/br/com/distribuidora/view/CadastroBebidaView.java` e `BebidasView.java`
+  - Salvar/Excluir usam o overlay central ("Salvando bebida...",
+    "Excluindo bebida...").
+- `src/css/components.css`
+  - Estilos `.loading-bar*`, `.loading-fundo`, `.loading-card`, `.loading-spinner`,
+    `.loading-label` (funciona nos temas claro e escuro).
+
+### Verificacao
+- `mvn compile`: OK (apenas warnings do JDK 25).
+- Smoke `javafx:run`: aplicacao iniciou e permaneceu ativa sem excecoes.
+
+## [Em revisao] Registro de venda no balcao (PLANO_NOVA_VENDA) (2026-09-22)
+
+Opcao 1 do `PLANO_NOVA_VENDA.md`: tela "Nova Venda" com carrinho de varios itens,
+selecao da forma de pagamento (respeitando as configuracoes), desconto com limite e
+baixa automatica no estoque ao finalizar. Implementado em 5 fases (0 a 4).
+
+- `src/br/com/distribuidora/repository/ConfiguracaoStore.java`
+  - Novos campos persistidos em `config.properties`: `pagamentos` (separados por
+    virgula), `desconto` (boolean), `limite_desconto` e `imprimir_comprovante`.
+  - Constante `FORMAS_PAGAMENTO_PADRAO` (Dinheiro, Cartao de credito, Cartao de
+    debito, Pix, Transferencia bancaria) usada como padrao se o arquivo nao tiver
+    o valor salvo.
+- `src/br/com/distribuidora/controller/ConfiguracaoController.java`
+  - Exposicoes/salvadores: `formasPagamentoPadrao()`, `formasPagamentoHabilitadas()`,
+    `salvarFormasPagamento()`, `permitirDesconto()`, `salvarPermitirDesconto()`,
+    `limiteDescontoPercentual()`, `salvarLimiteDescontoPercentual()`,
+    `imprimirComprovante()`, `salvarImprimirComprovante()`.
+- `src/br/com/distribuidora/view/ConfiguracaoView.java`
+  - Aba "Vendas" agora constroi os 5 CheckBox de pagamento a partir do estado salvo
+    (referencias em `checksPagamento`) e guarda os toggles de desconto e comprovante
+    para persistencia real no Salvar (o switch "Exigir confirmacao antes de cancelar
+    venda" segue decorativo, fora de escopo). Validacao do limite de desconto
+    mantida. Helpers `novoSwitch`/`linhaSwitch` extraidos de `criarSwitch`.
+- `src/br/com/distribuidora/model/ItemVenda.java` (novo)
+  - Item de carrinho: `bebidaId`, `nomeBebida` (snapshot), `quantidade`,
+    `precoUnitario` e `subtotal()` (HALF_UP, 2 casas).
+- `src/br/com/distribuidora/model/Venda.java` (novo)
+  - Venda: `id` (int, embora o proximoId use base 1), `dataHora`, itens,
+    `formaPagamento`, `descontoPercentual`, `status` ("Concluida"),
+    `subtotalBruto()`, `valorDesconto()` e `valorTotal()`.
+- `src/br/com/distribuidora/repository/VendaRepository.java` (novo)
+  - Singleton no padrao `EstoqueRepository`: `adicionar`, `listar`, `proximoId`.
+- `src/br/com/distribuidora/controller/VendaController.java` (novo)
+  - Singleton com `formasPagamentoDisponiveis()`, `permitirDesconto()`,
+    `limiteDescontoPercentual()`, `imprimirComprovante()`, `listarVendas()` e
+    `registrarVenda(itens, formaPagamento, desconto)` validando: itens vazios,
+    quantidade > 0, estoque suficiente por bebida, forma de pagamento habilitada,
+    desconto nao negativo, desconto permitido e dentro do limite. Ao finalizar,
+    gera a `Venda` com status/valor e da baixa no estoque via
+    `EstoqueRepository.atualizar` (so depois de todas as validacoes passarem).
+- `src/br/com/distribuidora/view/NovaVendaView.java` (novo)
+  - Dois paineis (`panel`): a esquerda seletor de bebida (nome, marca e estoque
+    disponivel) + quantidade (TextFormatter de digitos) + "Adicionar" (junta
+    quantidades da mesma bebida, verificando estoque) e a tabela do carrinho com
+    remocao por linha e subtotais; a direita forma de pagamento, campo de
+    desconto (%) que so aparece se `permitirDesconto` (com ajuda "Desconto maximo
+    permitido: X%"), resumo (subtotal/desconto/total) e botoes "Finalizar venda"
+    (desabilitado com carrinho vazio; usa `LoadingService.central`) e "Cancelar".
+    Feedback de erro amigavel reutilizando a mensagem da `IllegalArgumentException`.
+    Toasts de confirmacao (inclusive o comprovante simulado, quando a config
+    "Imprimir comprovante automaticamente" estiver ativa).
+- `src/br/com/distribuidora/view/MainLayout.java`
+  - Caso `VENDAS` roteia para `novaVenda()` (antes ficava vazio).
+- `src/br/com/distribuidora/util/Formatadores.java`
+  - Novo `dataHora(LocalDateTime)` em "dd/MM/yyyy HH:mm" para os toasts de venda.
+
+Decisao de produto (secao 3.1 do plano): carrinho com multiplos itens. Ficou fora do
+escopo a operacao de cancelar venda e a integracao real com os cronometros de
+relatorios (usam `VendaMock` ate existirem vendas reais em lote).
+
+### Ajustes de UX apos primeira passada
+- `src/br/com/distribuidora/view/NovaVendaView.java`
+  - Tabela do carrinho ganha clip arredondado (raio 12) amarrado ao tamanho,
+    eliminando qualquer pixel da linha que extravase as bordas do painel; a sombra
+    propria da tabela e desligada (`.table-view.cart-table`) ja que o painel que a
+    envolve ja projeta a sombra. Coluna de remocao flexivel (44 -> 40..64) para a
+    politica CONSTRAINED nunca forcar overflow; botao "x" contido em 28x28 para
+    caber na altura fixa de 44px da linha.
+  - Desconto: novo botao "Aplicar desconto" ao lado do campo (e Enter no campo
+    dispara o mesmo). Valida valor (numero, 0..100, dentro do limite configurado)
+    marcando o campo com `input-error` quando invalido, recalcula o resumo na hora
+    e mostra feedback verde "Desconto de X% aplicado ao total" (classe
+    `field-success`, mesmo padrao da ConfiguracaoView). O resumo nao depende mais
+    de finalizar a venda. `finalizarVenda` reutiliza o mesmo parse/validacao e
+    remove o hack de `setStyle` inline. Tambem corrigido um NPE descoberto no
+    smoke: a label local "Desconto (%)" sombreava o campo `labelDesconto` do
+    resumo, que ficava `null` ao atualizar o resumo (renomeada para
+    `rotuloDesconto`).
+- `src/css/components.css`
+  - Nova regra `.table-view.cart-table { -fx-effect: null; }` (sombra fica so no
+    painel).
+
+### Verificacao
+- `mvn compile`: OK (apenas warnings do JDK 25).
+- Smoke `javafx:run`: aplicacao iniciou e permaneceu ativa sem excecoes.
+
+## [Em revisao] Armazenamento local offline (estoque.json + vendas.json) (2026-09-22)
+- Decisao de produto (via questionario): substituir os mocks de estoque e vendas por
+  persistencia local offline em JSON, seguindo o padrao do `ConfiguracaoStore`
+  (`~/.bebmais/config.properties`). Os mocks de Financeiro e Compras permanecem
+  (nao ha telas que originem esses dados).
+- `pom.xml`
+  - Nova dependencia `com.google.code.gson:gson:2.11.0`.
+- `src/br/com/distribuidora/repository/Persistencia.java` (novo)
+  - Gson com pretty-print e adapters de `LocalDate`/`LocalDateTime` (string ISO),
+    ja que datas JSON nativas virariam objetos. `lerLista(Path, Type)` devolve
+    `null` se o arquivo nao existir, estiver vazio/corrompido ou falhar a leitura
+    (mensagem no stderr); `gravar(Path, Object)` imprime no stderr em falha de
+    escrita. Aplicacao segue em memoria em qualquer cenario de excecao (graceful).
+- `src/br/com/distribuidora/repository/EstoqueRepository.java`
+  - Carrega `~/.bebmais/estoque.json` no construtor; primeira execucao gera os 9
+    seeds e grava o arquivo. `adicionar`/`atualizar`/`remover` chamam `salvar()`.
+  - Removido codigo morto `totalVendas = 25` (nao existe mais esse dado em estoque).
+- `src/br/com/distribuidora/model/ItemVenda.java` e `model/Venda.java`
+  - Convertidos para POJOs mutaveis (construtor sem argumentos + setters), mesmo
+    padrao do `Bebida`, para o Gson desserializar (`LocalDateTime` de `dataHora`
+    via adapter).
+- `src/br/com/distribuidora/repository/VendaRepository.java`
+  - Carrega `~/.bebmais/vendas.json`; `adicionar` chama `salvar()`.
+- `src/br/com/distribuidora/controller/RelatorioController.java`
+  - Vendas agora vem do `VendaRepository` (dados reais); `totalVendas`,
+    `valorTotalVendas`, `produtosVendidos` e `ticketMedio` sao calculados das
+    vendas persistidas. Classe `VendaMock` removida (8 registros de mentira) e
+    campo correspondente eliminado. `FinanceiroMock`/`CompraMock` mantidos.
+- `src/br/com/distribuidora/view/RelatorioView.java`
+  - Aba Vendas migrada para `Venda` real: colunas Data (`Formatadores.dataHora`),
+    Numero da venda ("V-nnn" via `Formatadores.codigo`), Qtd. itens (soma dos
+    itens), Forma de pagamento, Valor total e Status; filtros derivam as opcoes
+    dos dados reais (pagamento e status apenas). Filtros e colunas de Cliente/
+    Vendedor removidos (venda e de balcao). Cards da pagina seguem usando
+    `relatorio.*`.
+
+### Verificacao
+- `mvn compile`: OK (apenas warnings do JDK 25).
+- Smoke `javafx:run`: aplicacao iniciou e permaneceu ativa sem excecoes; primeira
+  execucao criou `~/.bebmais/estoque.json` com os 9 seeds.
+- Primeiro smoke detectou e corrigiu um NPE de ordem de inicializacao estatica:
+  `INSTANCIA` era criada antes de `ARQUIVO`/`TIPO_*` (null no construtor) em
+  `EstoqueRepository` e `VendaRepository`; campos de parsing movidos para antes do
+  singleton.

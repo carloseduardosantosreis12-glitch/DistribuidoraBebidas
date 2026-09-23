@@ -236,9 +236,14 @@ public class BebidasView {
         alerta.showAndWait()
                 .filter(resposta -> resposta == confirmar)
                 .ifPresent(resposta -> {
-                    controle.excluirBebida(bebida.getId());
-                    notificar.accept("Bebida excluída: " + bebida.getNome()
-                            + " (" + Formatadores.codigo(bebida.getId() + 1) + ")");
+                    LoadingService.central("Excluindo bebida...");
+                    try {
+                        controle.excluirBebida(bebida.getId());
+                        notificar.accept("Bebida excluída: " + bebida.getNome()
+                                + " (" + Formatadores.codigo(bebida.getId() + 1) + ")");
+                    } finally {
+                        LoadingService.parar();
+                    }
                 });
     }
 

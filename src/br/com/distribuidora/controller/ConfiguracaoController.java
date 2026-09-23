@@ -2,6 +2,8 @@ package br.com.distribuidora.controller;
 
 import br.com.distribuidora.repository.ConfiguracaoStore;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ConfiguracaoController {
 
@@ -67,6 +69,46 @@ public class ConfiguracaoController {
 
     public void salvarDensidade(String densidade) throws IOException {
         config.setDensidade(densidade);
+        config.salvar();
+    }
+
+    public List<String> formasPagamentoPadrao() {
+        return new ArrayList<>(ConfiguracaoStore.FORMAS_PAGAMENTO_PADRAO);
+    }
+
+    public List<String> formasPagamentoHabilitadas() {
+        return config.getFormasPagamentoHabilitadas();
+    }
+
+    public void salvarFormasPagamento(List<String> formas) throws IOException {
+        config.setFormasPagamentoHabilitadas(formas);
+        config.salvar();
+    }
+
+    public boolean permitirDesconto() {
+        return config.isPermitirDesconto();
+    }
+
+    public void salvarPermitirDesconto(boolean permitir) throws IOException {
+        config.setPermitirDesconto(permitir);
+        config.salvar();
+    }
+
+    public double limiteDescontoPercentual() {
+        return config.getLimiteDescontoPercentual();
+    }
+
+    public void salvarLimiteDescontoPercentual(double limite) throws IOException {
+        config.setLimiteDescontoPercentual(limite);
+        config.salvar();
+    }
+
+    public boolean imprimirComprovante() {
+        return config.isImprimirComprovante();
+    }
+
+    public void salvarImprimirComprovante(boolean imprimir) throws IOException {
+        config.setImprimirComprovante(imprimir);
         config.salvar();
     }
 }
