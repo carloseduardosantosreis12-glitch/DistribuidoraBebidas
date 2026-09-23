@@ -1,15 +1,13 @@
 package br.com.distribuidora.view;
 
+import br.com.distribuidora.controller.EstoqueController;
 import br.com.distribuidora.model.Bebida;
-import br.com.distribuidora.repository.ConfiguracaoStore;
-import br.com.distribuidora.repository.EstoqueRepository;
 import br.com.distribuidora.util.Formatadores;
 import br.com.distribuidora.view.components.PageHeader;
 import br.com.distribuidora.view.components.TabelaCelulas;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Objects;
 import java.util.function.Consumer;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringWrapper;
@@ -35,8 +33,7 @@ import org.kordamp.ikonli.javafx.FontIcon;
 
 public class BebidasView {
 
-    private final EstoqueRepository estoque = EstoqueRepository.getInstance();
-    private final ConfiguracaoStore config = ConfiguracaoStore.getInstance();
+    private final EstoqueController controle = EstoqueController.getInstance();
     private final Runnable onNovaBebida;
     private final Consumer<String> notificar;
 
@@ -46,7 +43,7 @@ public class BebidasView {
     }
 
     public VBox getRoot() {
-        List<Bebida> cadastradas = estoque.listar();
+        List<Bebida> cadastradas = controle.listarBebidas();
 
         PageHeader cabecalho = new PageHeader(
                 "Bebidas",
@@ -64,7 +61,7 @@ public class BebidasView {
         busca.setPrefWidth(300);
         busca.setMaxWidth(380);
 
-        ComboBox<String> categorias = filtrarPorCategoria(cadastradas);
+        ComboBox<String> categorias = filtrarPorCategoria();
         categorias.setPrefWidth(180);
 
         Runnable aplicarFiltro = () -> filtrada.setPredicate(
@@ -92,15 +89,10 @@ public class BebidasView {
         return raiz;
     }
 
-    private ComboBox<String> filtrarPorCategoria(List<Bebida> cadastradas) {
+    private ComboBox<String> filtrarPorCategoria() {
         ComboBox<String> combo = new ComboBox<>();
         combo.getItems().add("Todos");
-        cadastradas.stream()
-                .map(Bebida::getCategoria)
-                .filter(Objects::nonNull)
-                .distinct()
-                .sorted()
-                .forEach(combo.getItems()::add);
+        combo.getItems().addAll(controle.categoriasOrdenadas());
         combo.setValue("Todos");
         return combo;
     }
@@ -120,8 +112,8 @@ public class BebidasView {
     }
 
     private TableView<Bebida> montarTabela(FilteredList<Bebida> filtrada) {
-        int limite = config.getLimiteEstoqueBaixo();
-        String moeda = config.getMoeda();
+        int limite = controle.limiteEstoqueBaixo();
+        String moeda = controle.moeda();
 
         TableView<Bebida> tabela = new TableView<>(filtrada);
         tabela.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);

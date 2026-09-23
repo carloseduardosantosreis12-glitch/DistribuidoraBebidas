@@ -1,6 +1,6 @@
 package br.com.distribuidora.view;
 
-import br.com.distribuidora.repository.ConfiguracaoStore;
+import br.com.distribuidora.controller.ConfiguracaoController;
 import br.com.distribuidora.view.components.Toast;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -15,7 +15,6 @@ public class MainLayout {
     private final BorderPane root = new BorderPane();
     private final ScrollPane conteudo = new ScrollPane();
     private final StackPane camadaToast = new StackPane();
-    private final ConfiguracaoStore config = ConfiguracaoStore.getInstance();
     private final Sidebar sidebar;
 
     public MainLayout() {
@@ -93,7 +92,7 @@ public class MainLayout {
 
     private Node novaConfiguracao() {
         return new ConfiguracaoView(() -> {
-            sidebar.setNomeEmpresa(config.getNomeEmpresa());
+            sidebar.setNomeEmpresa(ConfiguracaoController.getInstance().nomeEmpresa());
             navegar(Sidebar.Item.INICIO);
         }).getRoot();
     }

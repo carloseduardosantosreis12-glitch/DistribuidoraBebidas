@@ -1,7 +1,7 @@
 package br.com.distribuidora.view;
 
+import br.com.distribuidora.controller.EstoqueController;
 import br.com.distribuidora.model.Bebida;
-import br.com.distribuidora.repository.EstoqueRepository;
 import br.com.distribuidora.view.components.PageHeader;
 import java.math.BigDecimal;
 import java.util.function.Consumer;
@@ -149,7 +149,7 @@ public class CadastroBebidaView {
                     bebida.setValidade(campoValidade.getValue());
                 }
 
-                EstoqueRepository.getInstance().adicionar(bebida);
+                EstoqueController.getInstance().cadastrarBebida(bebida);
 
                 campoNome.clear();
                 campoMarca.clear();

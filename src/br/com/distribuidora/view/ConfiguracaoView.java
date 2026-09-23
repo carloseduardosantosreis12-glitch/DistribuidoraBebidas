@@ -1,6 +1,6 @@
 package br.com.distribuidora.view;
 
-import br.com.distribuidora.repository.ConfiguracaoStore;
+import br.com.distribuidora.controller.ConfiguracaoController;
 import br.com.distribuidora.view.components.PageHeader;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -23,7 +23,7 @@ import javafx.scene.layout.VBox;
 
 public class ConfiguracaoView {
 
-    private final ConfiguracaoStore config = ConfiguracaoStore.getInstance();
+    private final ConfiguracaoController configuracao = ConfiguracaoController.getInstance();
     private final Runnable onSalvar;
 
     private TextField campoEmpresa;
@@ -82,7 +82,7 @@ public class ConfiguracaoView {
 
         areaLogo.getChildren().add(interiorLogo);
 
-        campoEmpresa = new TextField(config.getNomeEmpresa());
+        campoEmpresa = new TextField(configuracao.nomeEmpresa());
         campoEmpresa.setMaxWidth(Double.MAX_VALUE);
 
         TextField campoCnpj = criarCampoFormulario("00.000.000/0000-00");
@@ -141,9 +141,8 @@ public class ConfiguracaoView {
                 return;
             }
 
-            config.setNomeEmpresa(empresa);
             try {
-                config.salvar();
+                configuracao.salvarNomeEmpresa(empresa);
             } catch (Exception e) {
                 mostrarFeedback(feedback, "Erro ao salvar as configurações.", false);
                 return;
@@ -167,7 +166,7 @@ public class ConfiguracaoView {
         Label descricao = new Label("Defina os limites e alertas de estoque do sistema.");
         descricao.getStyleClass().add("field-help");
 
-        campoLimite = new TextField(String.valueOf(config.getLimiteEstoqueBaixo()));
+        campoLimite = new TextField(String.valueOf(configuracao.limiteEstoqueBaixo()));
         campoLimite.setPrefWidth(180);
 
         VBox grupoLimite = criarGrupoCampo("Estoque mínimo padrão", campoLimite);
@@ -198,8 +197,7 @@ public class ConfiguracaoView {
                     throw new NumberFormatException();
                 }
 
-                config.setLimiteEstoqueBaixo(limite);
-                config.salvar();
+                configuracao.salvarLimiteEstoqueBaixo(limite);
 
                 mostrarFeedback(feedback, "Configurações de estoque salvas!", true);
                 notificarSalvamento();
@@ -403,7 +401,7 @@ public class ConfiguracaoView {
 
         ComboBox<String> formatoMoeda = new ComboBox<>();
         formatoMoeda.getItems().addAll("R$", "US$", "€");
-        formatoMoeda.setValue(config.getMoeda());
+        formatoMoeda.setValue(configuracao.moeda());
         formatoMoeda.setPrefWidth(120);
 
         HBox formatos = new HBox(26,
@@ -432,9 +430,8 @@ public class ConfiguracaoView {
         rodape.setAlignment(Pos.CENTER_RIGHT);
 
         salvar.setOnAction(event -> {
-            config.setMoeda(formatoMoeda.getValue());
             try {
-                config.salvar();
+                configuracao.salvarMoeda(formatoMoeda.getValue());
             } catch (Exception e) {
                 mostrarFeedback(feedback, "Erro ao salvar as configurações.", false);
                 return;

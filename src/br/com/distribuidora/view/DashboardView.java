@@ -1,8 +1,8 @@
 package br.com.distribuidora.view;
 
+import br.com.distribuidora.controller.ConfiguracaoController;
+import br.com.distribuidora.controller.EstoqueController;
 import br.com.distribuidora.model.Bebida;
-import br.com.distribuidora.repository.ConfiguracaoStore;
-import br.com.distribuidora.repository.EstoqueRepository;
 import br.com.distribuidora.util.Formatadores;
 import br.com.distribuidora.view.components.PageHeader;
 import br.com.distribuidora.view.components.StatCard;
@@ -26,8 +26,7 @@ import org.kordamp.ikonli.javafx.FontIcon;
 
 public class DashboardView {
 
-    private final EstoqueRepository estoque = EstoqueRepository.getInstance();
-    private final ConfiguracaoStore config = ConfiguracaoStore.getInstance();
+    private final EstoqueController controle = EstoqueController.getInstance();
     private final Runnable onNovaBebida;
     private final Runnable onVerTodas;
 
@@ -37,24 +36,25 @@ public class DashboardView {
     }
 
     public VBox getRoot() {
-        int limite = config.getLimiteEstoqueBaixo();
-        List<Bebida> recentes = cincoUltimas();
+        int limite = controle.limiteEstoqueBaixo();
+        List<Bebida> recentes = controle.ultimasCadastradas(5);
 
         PageHeader cabecalho = new PageHeader(
                 "Painel de controle",
-                "Visão geral do estoque da " + config.getNomeEmpresa(),
+                "Visão geral do estoque da "
+                        + ConfiguracaoController.getInstance().nomeEmpresa(),
                 botaoNovaBebida()
         );
 
         HBox cards = new HBox(16,
                 new StatCard("Bebidas cadastradas",
-                        String.valueOf(estoque.totalProdutos())),
+                        String.valueOf(controle.totalProdutos())),
                 new StatCard("Unidades em estoque",
-                        String.valueOf(estoque.totalUnidades())),
+                        String.valueOf(controle.totalUnidades())),
                 new StatCard("Alertas de estoque",
-                        String.valueOf(estoque.estoqueBaixo(limite).size()), true),
+                        String.valueOf(controle.totalEstoqueBaixo()), true),
                 new StatCard("Valor do estoque",
-                        Formatadores.moeda(config.getMoeda(), estoque.valorTotalEstoque())));
+                        Formatadores.moeda(controle.moeda(), controle.valorTotalEstoque())));
         cards.getChildren().forEach(no -> {
             HBox.setHgrow(no, Priority.ALWAYS);
             ((Region) no).setMaxWidth(Double.MAX_VALUE);
@@ -66,11 +66,6 @@ public class DashboardView {
                 secaoRecentes(recentes, limite));
         raiz.setMaxWidth(Double.MAX_VALUE);
         return raiz;
-    }
-
-    private List<Bebida> cincoUltimas() {
-        List<Bebida> todas = estoque.listar();
-        return todas.subList(Math.max(0, todas.size() - 5), todas.size());
     }
 
     private VBox secaoRecentes(List<Bebida> recentes, int limite) {
@@ -102,7 +97,7 @@ public class DashboardView {
         tabela.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
         tabela.setFixedCellSize(44);
 
-        String moeda = config.getMoeda();
+        String moeda = controle.moeda();
 
         TableColumn<Bebida, String> colCodigo = new TableColumn<>("Código");
         colCodigo.setCellValueFactory(d ->
