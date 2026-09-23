@@ -21,6 +21,9 @@ public class ConfiguracaoStore {
     private String nomeEmpresa = "BebMais";
     private int limiteEstoqueBaixo = 10;
     private String moeda = "R$";
+    private String tema = "claro";
+    private String fonte = "Média";
+    private String densidade = "Confortável";
 
     private ConfiguracaoStore() {
         carregar();
@@ -43,6 +46,9 @@ public class ConfiguracaoStore {
             nomeEmpresa = props.getProperty("empresa", "BebMais");
             limiteEstoqueBaixo = parseInt(props.getProperty("limite", "10"), 10);
             moeda = props.getProperty("moeda", "R$");
+            tema = props.getProperty("tema", "claro");
+            fonte = props.getProperty("fonte", "Média");
+            densidade = props.getProperty("densidade", "Confortável");
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -53,6 +59,9 @@ public class ConfiguracaoStore {
         props.setProperty("empresa", nomeEmpresa);
         props.setProperty("limite", String.valueOf(limiteEstoqueBaixo));
         props.setProperty("moeda", moeda);
+        props.setProperty("tema", tema);
+        props.setProperty("fonte", fonte);
+        props.setProperty("densidade", densidade);
         try (OutputStream out = Files.newOutputStream(ARQUIVO)) {
             props.store(out, "Configuracao BebMais");
         }
@@ -88,5 +97,29 @@ public class ConfiguracaoStore {
 
     public void setMoeda(String moeda) {
         this.moeda = moeda;
+    }
+
+    public String getTema() {
+        return tema;
+    }
+
+    public void setTema(String tema) {
+        this.tema = tema;
+    }
+
+    public String getFonte() {
+        return fonte;
+    }
+
+    public void setFonte(String fonte) {
+        this.fonte = fonte;
+    }
+
+    public String getDensidade() {
+        return densidade;
+    }
+
+    public void setDensidade(String densidade) {
+        this.densidade = densidade;
     }
 }

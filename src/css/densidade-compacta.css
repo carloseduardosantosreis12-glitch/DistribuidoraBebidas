@@ -1,0 +1,41 @@
+/* densidade compacta - spacing global menor + paddings e alturas enxutas */
+
+VBox {
+    -fx-spacing: 10;
+}
+
+HBox {
+    -fx-spacing: 8;
+}
+
+.content-scroll {
+    -fx-padding: 20 24 18 24;
+}
+
+.panel {
+    -fx-padding: 16;
+}
+
+.stat-card-content {
+    -fx-padding: 12 16 12 16;
+}
+
+.button {
+    -fx-min-height: 32;
+    -fx-pref-height: 32;
+    -fx-padding: 0 12 0 12;
+}
+
+.nav-item {
+    -fx-min-height: 34;
+    -fx-pref-height: 34;
+}
+
+.tab-pane {
+    -fx-tab-min-height: 32;
+    -fx-tab-max-height: 32;
+}
+
+.table-view .column-header {
+    -fx-size: 38;
+}

@@ -11,13 +11,18 @@
     -fx-text-fill: -bm-text;
 }
 
+.check-box,
+.radio-button {
+    -fx-text-fill: -bm-text;
+}
+
 /* campos de formulario */
 .text-field,
 .text-area,
 .combo-box,
 .date-picker {
     -fx-pref-height: 40;
-    -fx-font-size: 13px;
+    -fx-font-size: 1em;
     -fx-background-color: -bm-surface;
     -fx-background-radius: 8;
     -fx-border-color: -bm-border-strong;
@@ -51,18 +56,18 @@
 
 /* rotulos e mensagens de campo */
 .field-label {
-    -fx-font-size: 13px;
+    -fx-font-size: 1em;
     -fx-font-weight: 600;
     -fx-text-fill: -bm-text;
 }
 
 .field-error {
-    -fx-font-size: 12px;
+    -fx-font-size: 0.923em;
     -fx-text-fill: -bm-danger;
 }
 
 .field-success {
-    -fx-font-size: 12px;
+    -fx-font-size: 0.923em;
     -fx-text-fill: -bm-success-text;
 }
 

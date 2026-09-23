@@ -22,6 +22,7 @@ public class Main extends Application {
         carregarCss(scene, "/css/tokens.css");
         carregarCss(scene, "/css/base.css");
         carregarCss(scene, "/css/components.css");
+        ThemeService.registrar(scene);
 
         Rectangle2D area = Screen.getPrimary().getVisualBounds();
         stage.setMinWidth(MIN_W);

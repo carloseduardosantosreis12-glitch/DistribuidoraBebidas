@@ -1,5 +1,6 @@
 package br.com.distribuidora.view;
 
+import br.com.distribuidora.ThemeService;
 import br.com.distribuidora.controller.ConfiguracaoController;
 import br.com.distribuidora.view.components.PageHeader;
 import javafx.geometry.Pos;
@@ -20,6 +21,8 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+
+import java.io.IOException;
 
 public class ConfiguracaoView {
 
@@ -326,18 +329,24 @@ public class ConfiguracaoView {
         escuro.setToggleGroup(grupoTema);
         sistema.setToggleGroup(grupoTema);
         claro.setSelected(true);
+        String temaSalvo = configuracao.tema();
+        if ("escuro".equals(temaSalvo)) {
+            escuro.setSelected(true);
+        } else if ("sistema".equals(temaSalvo)) {
+            sistema.setSelected(true);
+        }
 
         HBox linhasTema = new HBox(22, claro, escuro, sistema);
         linhasTema.setAlignment(Pos.CENTER_LEFT);
 
         ComboBox<String> tamanhoFonte = new ComboBox<>();
         tamanhoFonte.getItems().addAll("Pequena", "Média", "Grande");
-        tamanhoFonte.setValue("Média");
+        tamanhoFonte.setValue(configuracao.fonte());
         tamanhoFonte.setPrefWidth(160);
 
         ComboBox<String> densidade = new ComboBox<>();
         densidade.getItems().addAll("Confortável", "Compacta");
-        densidade.setValue("Confortável");
+        densidade.setValue(configuracao.densidade());
         densidade.setPrefWidth(160);
 
         HBox opcoes = new HBox(26,
@@ -359,18 +368,43 @@ public class ConfiguracaoView {
         rodape.setAlignment(Pos.CENTER_RIGHT);
 
         aplicar.setOnAction(event -> {
-            Object tema = grupoTema.getSelectedToggle() == null
-                    ? "claro" : grupoTema.getSelectedToggle().getUserData();
-            mostrarFeedback(feedback,
-                    "Tema \"" + tema + "\" aplicado (" + tamanhoFonte.getValue()
-                            + ", " + densidade.getValue() + ").", true);
+            String tema = String.valueOf(grupoTema.getSelectedToggle() == null
+                    ? "claro" : grupoTema.getSelectedToggle().getUserData());
+            String fonteEscolhida = tamanhoFonte.getValue();
+            String densidadeEscolhida = densidade.getValue();
+            try {
+                configuracao.salvarTema(tema);
+                configuracao.salvarFonte(fonteEscolhida);
+                configuracao.salvarDensidade(densidadeEscolhida);
+                ThemeService.aplicarTema(tema);
+                ThemeService.aplicarFonte(fonteEscolhida);
+                ThemeService.aplicarDensidade(densidadeEscolhida);
+                String temaMsg = "sistema".equals(tema)
+                        ? "sistema (" + ThemeService.temaAtual() + ")"
+                        : tema;
+                mostrarFeedback(feedback,
+                        "Tema \"" + temaMsg + "\", fonte \"" + fonteEscolhida
+                                + "\", densidade \"" + densidadeEscolhida + "\" aplicados.", true);
+            } catch (IOException e) {
+                mostrarFeedback(feedback, "Erro ao salvar as preferências de aparência.", false);
+            }
         });
 
         restaurar.setOnAction(event -> {
             claro.setSelected(true);
             tamanhoFonte.setValue("Média");
             densidade.setValue("Confortável");
-            mostrarFeedback(feedback, "Aparência restaurada ao padrão.", true);
+            try {
+                configuracao.salvarTema("claro");
+                configuracao.salvarFonte("Média");
+                configuracao.salvarDensidade("Confortável");
+                ThemeService.aplicarTema("claro");
+                ThemeService.aplicarFonte("Média");
+                ThemeService.aplicarDensidade("Confortável");
+                mostrarFeedback(feedback, "Aparência restaurada ao padrão.", true);
+            } catch (IOException e) {
+                mostrarFeedback(feedback, "Erro ao restaurar a aparência.", false);
+            }
         });
 
         conteudo.getChildren().addAll(
@@ -485,6 +519,8 @@ public class ConfiguracaoView {
         label.getStyleClass().add("field-label");
 
         HBox linha = new HBox(12, label, toggle);
+        linha.getStyleClass().add("setting-row");
+        linha.setMaxWidth(Double.MAX_VALUE);
         linha.setAlignment(Pos.CENTER_LEFT);
         HBox.setHgrow(label, Priority.ALWAYS);
         return linha;

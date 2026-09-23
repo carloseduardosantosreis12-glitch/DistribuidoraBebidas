@@ -42,4 +42,31 @@ public class ConfiguracaoController {
         config.setMoeda(moeda);
         config.salvar();
     }
+
+    public String tema() {
+        return config.getTema();
+    }
+
+    public void salvarTema(String tema) throws IOException {
+        config.setTema(tema);
+        config.salvar();
+    }
+
+    public String fonte() {
+        return config.getFonte();
+    }
+
+    public void salvarFonte(String fonte) throws IOException {
+        config.setFonte(fonte);
+        config.salvar();
+    }
+
+    public String densidade() {
+        return config.getDensidade();
+    }
+
+    public void salvarDensidade(String densidade) throws IOException {
+        config.setDensidade(densidade);
+        config.salvar();
+    }
 }

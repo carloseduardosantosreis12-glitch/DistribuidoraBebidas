@@ -113,11 +113,13 @@ public class DashboardView {
         colCategoria.setMinWidth(110);
 
         TableColumn<Bebida, BigDecimal> colPreco = new TableColumn<>("Preço");
+        colPreco.getStyleClass().add("numeric-column");
         colPreco.setCellValueFactory(d -> new ReadOnlyObjectWrapper<>(d.getValue().getPreco()));
         colPreco.setCellFactory(col -> TabelaCelulas.preco(moeda));
         colPreco.setMinWidth(90);
 
         TableColumn<Bebida, Integer> colEstoque = new TableColumn<>("Estoque");
+        colEstoque.getStyleClass().add("numeric-column");
         colEstoque.setCellValueFactory(d -> new ReadOnlyObjectWrapper<>(d.getValue().getEstoque()));
         colEstoque.setCellFactory(col -> TabelaCelulas.estoque(limite));
         colEstoque.setMinWidth(110);

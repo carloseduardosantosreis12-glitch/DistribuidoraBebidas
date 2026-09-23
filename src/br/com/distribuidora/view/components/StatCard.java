@@ -2,8 +2,9 @@ package br.com.distribuidora.view.components;
 
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Region;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
+import javafx.scene.shape.Rectangle;
 
 public class StatCard extends HBox {
 
@@ -20,11 +21,12 @@ public class StatCard extends HBox {
         setPrefHeight(96);
         setMaxHeight(96);
 
-        Region barra = new Region();
-        barra.getStyleClass().add("stat-card-bar");
-        barra.setMinWidth(4);
-        barra.setPrefWidth(4);
-        barra.setMaxWidth(4);
+        Rectangle recorte = new Rectangle();
+        recorte.widthProperty().bind(widthProperty());
+        recorte.heightProperty().bind(heightProperty());
+        recorte.setArcWidth(24);
+        recorte.setArcHeight(24);
+        setClip(recorte);
 
         Label rotuloLabel = new Label(rotulo);
         rotuloLabel.getStyleClass().add("stat-card-label");
@@ -34,7 +36,9 @@ public class StatCard extends HBox {
 
         VBox conteudo = new VBox(6, rotuloLabel, valorLabel);
         conteudo.getStyleClass().add("stat-card-content");
+        HBox.setHgrow(conteudo, Priority.ALWAYS);
+        conteudo.setMaxWidth(Double.MAX_VALUE);
 
-        getChildren().addAll(barra, conteudo);
+        getChildren().add(conteudo);
     }
 }

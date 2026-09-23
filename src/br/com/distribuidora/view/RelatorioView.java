@@ -130,7 +130,7 @@ public class RelatorioView {
                 criarGrupoCampo("Data final", dataFinal),
                 filtrar,
                 limpar);
-        linha.setAlignment(Pos.CENTER_LEFT);
+        linha.setAlignment(Pos.BOTTOM_LEFT);
 
         filtrar.setOnAction(event -> {
             feedbackFiltros.setText("Relatório gerado para o período selecionado.");
@@ -243,12 +243,14 @@ public class RelatorioView {
         colVendedor.setCellValueFactory(new PropertyValueFactory<>("vendedor"));
 
         TableColumn<VendaMock, Integer> colItens = new TableColumn<>("Qtd. itens");
+        colItens.getStyleClass().add("numeric-column");
         colItens.setCellValueFactory(new PropertyValueFactory<>("quantidadeItens"));
 
         TableColumn<VendaMock, String> colPagamento = new TableColumn<>("Forma de pagamento");
         colPagamento.setCellValueFactory(new PropertyValueFactory<>("pagamento"));
 
         TableColumn<VendaMock, BigDecimal> colValor = new TableColumn<>("Valor total");
+        colValor.getStyleClass().add("numeric-column");
         colValor.setCellValueFactory(new PropertyValueFactory<>("valor"));
         colValor.setCellFactory(col -> new TableCell<>() {
             @Override
@@ -309,12 +311,15 @@ public class RelatorioView {
         colCategoria.setCellValueFactory(new PropertyValueFactory<>("categoria"));
 
         TableColumn<EstoqueMock, Integer> colAtual = new TableColumn<>("Estoque atual");
+        colAtual.getStyleClass().add("numeric-column");
         colAtual.setCellValueFactory(new PropertyValueFactory<>("estoqueAtual"));
 
         TableColumn<EstoqueMock, Integer> colMinimo = new TableColumn<>("Estoque mínimo");
+        colMinimo.getStyleClass().add("numeric-column");
         colMinimo.setCellValueFactory(new PropertyValueFactory<>("estoqueMinimo"));
 
         TableColumn<EstoqueMock, BigDecimal> colPreco = new TableColumn<>("Preço");
+        colPreco.getStyleClass().add("numeric-column");
         colPreco.setCellValueFactory(new PropertyValueFactory<>("preco"));
         colPreco.setCellFactory(col -> new TableCell<>() {
             @Override
@@ -363,6 +368,7 @@ public class RelatorioView {
         colMarca.setCellValueFactory(new PropertyValueFactory<>("marca"));
 
         TableColumn<ProdutoMock, BigDecimal> colCompra = new TableColumn<>("Preço de compra");
+        colCompra.getStyleClass().add("numeric-column");
         colCompra.setCellValueFactory(new PropertyValueFactory<>("precoCompra"));
         colCompra.setCellFactory(col -> new TableCell<>() {
             @Override
@@ -372,6 +378,7 @@ public class RelatorioView {
         });
 
         TableColumn<ProdutoMock, BigDecimal> colVenda = new TableColumn<>("Preço de venda");
+        colVenda.getStyleClass().add("numeric-column");
         colVenda.setCellValueFactory(new PropertyValueFactory<>("precoVenda"));
         colVenda.setCellFactory(col -> new TableCell<>() {
             @Override
@@ -381,6 +388,7 @@ public class RelatorioView {
         });
 
         TableColumn<ProdutoMock, Integer> colEstoque = new TableColumn<>("Estoque");
+        colEstoque.getStyleClass().add("numeric-column");
         colEstoque.setCellValueFactory(new PropertyValueFactory<>("estoque"));
 
         TableColumn<ProdutoMock, String> colStatus = new TableColumn<>("Status");
@@ -431,6 +439,7 @@ public class RelatorioView {
         colCategoria.setCellValueFactory(new PropertyValueFactory<>("categoria"));
 
         TableColumn<FinanceiroMock, BigDecimal> colValor = new TableColumn<>("Valor");
+        colValor.getStyleClass().add("numeric-column");
         colValor.setCellValueFactory(new PropertyValueFactory<>("valor"));
         colValor.setCellFactory(col -> criarCelulaValorFinanceiro());
 
@@ -464,9 +473,11 @@ public class RelatorioView {
         colFornecedor.setCellValueFactory(new PropertyValueFactory<>("fornecedor"));
 
         TableColumn<CompraMock, Integer> colItens = new TableColumn<>("Qtd. produtos");
+        colItens.getStyleClass().add("numeric-column");
         colItens.setCellValueFactory(new PropertyValueFactory<>("quantidadeProdutos"));
 
         TableColumn<CompraMock, BigDecimal> colValor = new TableColumn<>("Valor total");
+        colValor.getStyleClass().add("numeric-column");
         colValor.setCellValueFactory(new PropertyValueFactory<>("valor"));
         colValor.setCellFactory(col -> new TableCell<>() {
             @Override

@@ -21,7 +21,7 @@ public final class TabelaCelulas {
                 setText(vazio || valor == null ? "" : Formatadores.moeda(simbolo, valor));
             }
         };
-        celula.setAlignment(Pos.CENTER_RIGHT);
+        celula.setAlignment(Pos.CENTER);
         return celula;
     }
 
@@ -36,13 +36,13 @@ public final class TabelaCelulas {
                 }
                 Label numero = new Label(String.valueOf(estoque));
                 HBox linha = new HBox(6, numero);
-                linha.setAlignment(Pos.CENTER_RIGHT);
+                linha.setAlignment(Pos.CENTER);
                 linha.setMaxWidth(Double.MAX_VALUE);
                 StatusBadge.paraEstoque(estoque, limite)
                         .ifPresent(badge -> linha.getChildren().add(0, badge));
                 setGraphic(linha);
                 setText(null);
-                setAlignment(Pos.CENTER_RIGHT);
+                setAlignment(Pos.CENTER);
             }
         };
     }
