@@ -109,7 +109,7 @@ public class DashboardView {
         colNome.setPrefWidth(280);
 
         TableColumn<Bebida, String> colCategoria = new TableColumn<>("Categoria");
-        colCategoria.setCellValueFactory(d -> new ReadOnlyStringWrapper(d.getValue().getCategoria()));
+        colCategoria.setCellValueFactory(d -> new ReadOnlyStringWrapper(d.getValue().getCategoria().getLabel()));
         colCategoria.setMinWidth(110);
 
         TableColumn<Bebida, BigDecimal> colPreco = new TableColumn<>("Preço");

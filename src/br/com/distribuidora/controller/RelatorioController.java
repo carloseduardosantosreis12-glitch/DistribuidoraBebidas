@@ -71,7 +71,7 @@ public class RelatorioController {
             registros.add(new EstoqueMock(
                     String.valueOf(b.getId() + 1),
                     b.getNome(),
-                    b.getCategoria(),
+                    b.getCategoria().getLabel(),
                     b.getEstoque(),
                     config.getLimiteEstoqueBaixo(),
                     b.getPreco(),
@@ -86,7 +86,7 @@ public class RelatorioController {
             registros.add(new ProdutoMock(
                     String.valueOf(b.getId() + 1),
                     b.getNome(),
-                    b.getCategoria(),
+                    b.getCategoria().getLabel(),
                     b.getMarca(),
                     b.getPreco().multiply(new BigDecimal("0.60")),
                     b.getPreco(),

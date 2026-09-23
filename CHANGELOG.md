@@ -145,3 +145,32 @@ O radio "Sistema" antes caia sempre em Claro. Agora le o tema real do SO.
 ### Verificacao
 - `mvn compile`: OK (apenas warnings do JDK 25).
 - Smoke `javafx:run`: aplicacao iniciou e permaneceu ativa 90s sem excecoes.
+
+## [Em revisao] Separador de milhar e categoria tipada (2026-09-22)
+
+### Separador de milhar no preco
+- `src/br/com/distribuidora/util/Formatadores.java`
+  - `moeda(...)` trocou `String.format` por `DecimalFormat` (`pt_BR`, 2 casas,
+    agrupamento ativo): `"R$ 1.234,56"`. Vale para tabelas, dashboard e relatorios.
+
+### Categoria vira enum (fonte unica da lista)
+- `src/br/com/distribuidora/model/Categoria.java` (novo)
+  - Enum com as 8 categorias do cadastro: Refrigerante, Água, Suco, Cerveja,
+    Energético, Vinho, Destilado, Outro. Helpers `getLabel()`, `porLabel()` e
+    `labels()`.
+- `src/br/com/distribuidora/model/Bebida.java`
+  - `categoria` passa de `String` para `Categoria`; `descricao()` usa o label.
+- `src/br/com/distribuidora/repository/EstoqueRepository.java`
+  - Sementes usam os valores do enum.
+- `src/br/com/distribuidora/controller/EstoqueController.java`
+  - `categoriasOrdenadas()` agora retorna a lista completa do enum (ordena por
+    label), nao apenas as que existem no estoque.
+- `src/br/com/distribuidora/view/CadastroBebidaView.java`
+  - Combo de categoria usa `Categoria.labels()`; salvar converte via `porLabel`.
+- `src/br/com/distribuidora/view/BebidasView.java` e `DashboardView.java`
+  - Colunas e filtro mostram/comparam pelo label.
+- `src/br/com/distribuidora/controller/RelatorioController.java`
+  - Mocks dos relatorios recebem o label da categoria.
+
+### Verificacao
+- `mvn compile`: OK (apenas warnings do JDK 25).

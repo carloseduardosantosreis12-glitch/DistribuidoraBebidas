@@ -1,11 +1,11 @@
 package br.com.distribuidora.controller;
 
 import br.com.distribuidora.model.Bebida;
+import br.com.distribuidora.model.Categoria;
 import br.com.distribuidora.repository.ConfiguracaoStore;
 import br.com.distribuidora.repository.EstoqueRepository;
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Objects;
 
 public class EstoqueController {
 
@@ -46,12 +46,7 @@ public class EstoqueController {
     }
 
     public List<String> categoriasOrdenadas() {
-        return estoque.listar().stream()
-                .map(Bebida::getCategoria)
-                .filter(Objects::nonNull)
-                .distinct()
-                .sorted()
-                .toList();
+        return Categoria.labels().stream().sorted().toList();
     }
 
     public int totalProdutos() {

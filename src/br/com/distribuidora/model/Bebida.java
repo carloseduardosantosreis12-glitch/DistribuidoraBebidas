@@ -8,7 +8,7 @@ public class Bebida {
     private int id;
     private String nome;
     private String marca;
-    private String categoria;
+    private Categoria categoria;
     private BigDecimal preco;
     private int estoque;
     private LocalDate validade;
@@ -16,7 +16,7 @@ public class Bebida {
     public Bebida() {
     }
 
-    public Bebida(int id, String nome, String categoria, BigDecimal preco, int estoque) {
+    public Bebida(int id, String nome, Categoria categoria, BigDecimal preco, int estoque) {
         this.id = id;
         this.nome = nome;
         this.categoria = categoria;
@@ -24,7 +24,7 @@ public class Bebida {
         this.estoque = estoque;
     }
 
-    public Bebida(int id, String nome, String marca, String categoria,
+    public Bebida(int id, String nome, String marca, Categoria categoria,
                   BigDecimal preco, int estoque) {
         this.id = id;
         this.nome = nome;
@@ -58,11 +58,11 @@ public class Bebida {
         this.marca = marca;
     }
 
-    public String getCategoria() {
+    public Categoria getCategoria() {
         return categoria;
     }
 
-    public void setCategoria(String categoria) {
+    public void setCategoria(Categoria categoria) {
         this.categoria = categoria;
     }
 
@@ -91,6 +91,7 @@ public class Bebida {
     }
 
     public String descricao() {
-        return nome + " - " + categoria + " - R$ " + preco + " - Estoque: " + estoque;
+        return nome + " - " + (categoria == null ? "?" : categoria.getLabel())
+                + " - R$ " + preco + " - Estoque: " + estoque;
     }
 }

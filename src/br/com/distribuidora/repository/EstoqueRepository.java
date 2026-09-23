@@ -1,6 +1,7 @@
 package br.com.distribuidora.repository;
 
 import br.com.distribuidora.model.Bebida;
+import br.com.distribuidora.model.Categoria;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
@@ -15,18 +16,18 @@ public class EstoqueRepository {
     private EstoqueRepository() {
         int id = 0;
 
-        bebidas.add(nova(id++, "Coca-Cola 2L", "Coca-Cola", "Refrigerante", "7,50", 45));
-        bebidas.add(nova(id++, "Guaraná Antarctica 2L", "Antarctica", "Refrigerante", "6,90", 38));
-        bebidas.add(nova(id++, "Fanta Laranja 2L", "Coca-Cola", "Refrigerante", "6,50", 22));
-        bebidas.add(nova(id++, "Água Mineral 500ml", "Crystal", "Água", "2,50", 60));
-        bebidas.add(nova(id++, "Suco de Laranja 1L", "Dell Vale", "Suco", "9,90", 5));
-        bebidas.add(nova(id++, "Cerveja Brahma 350ml", "Ambev", "Cerveja", "3,90", 4));
-        bebidas.add(nova(id++, "Energético Red Bull 250ml", "Red Bull", "Energético", "12,50", 2));
-        bebidas.add(nova(id++, "Vinho Tinto Seco 750ml", "Casa Valduga", "Vinho", "45,00", 12));
-        bebidas.add(nova(id++, "Vodka Absolut 1L", "Absolut", "Destilado", "120,00", 3));
+        bebidas.add(nova(id++, "Coca-Cola 2L", "Coca-Cola", Categoria.REFRIGERANTE, "7,50", 45));
+        bebidas.add(nova(id++, "Guaraná Antarctica 2L", "Antarctica", Categoria.REFRIGERANTE, "6,90", 38));
+        bebidas.add(nova(id++, "Fanta Laranja 2L", "Coca-Cola", Categoria.REFRIGERANTE, "6,50", 22));
+        bebidas.add(nova(id++, "Água Mineral 500ml", "Crystal", Categoria.AGUA, "2,50", 60));
+        bebidas.add(nova(id++, "Suco de Laranja 1L", "Dell Vale", Categoria.SUCO, "9,90", 5));
+        bebidas.add(nova(id++, "Cerveja Brahma 350ml", "Ambev", Categoria.CERVEJA, "3,90", 4));
+        bebidas.add(nova(id++, "Energético Red Bull 250ml", "Red Bull", Categoria.ENERGETICO, "12,50", 2));
+        bebidas.add(nova(id++, "Vinho Tinto Seco 750ml", "Casa Valduga", Categoria.VINHO, "45,00", 12));
+        bebidas.add(nova(id++, "Vodka Absolut 1L", "Absolut", Categoria.DESTILADO, "120,00", 3));
     }
 
-    private Bebida nova(int id, String nome, String marca, String categoria,
+    private Bebida nova(int id, String nome, String marca, Categoria categoria,
                         String preco, int estoque) {
         return new Bebida(id, nome, marca, categoria,
                 new BigDecimal(preco.replace(",", ".")), estoque);

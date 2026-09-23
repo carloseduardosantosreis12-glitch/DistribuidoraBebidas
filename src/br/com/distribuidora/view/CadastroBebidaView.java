@@ -2,6 +2,7 @@ package br.com.distribuidora.view;
 
 import br.com.distribuidora.controller.EstoqueController;
 import br.com.distribuidora.model.Bebida;
+import br.com.distribuidora.model.Categoria;
 import br.com.distribuidora.util.Formatadores;
 import br.com.distribuidora.view.components.PageHeader;
 import java.math.BigDecimal;
@@ -156,16 +157,7 @@ public class CadastroBebidaView {
         campoMarca.setMaxWidth(Double.MAX_VALUE);
 
         campoCategoria = new ComboBox<>();
-        campoCategoria.getItems().addAll(
-                "Refrigerante",
-                "Água",
-                "Suco",
-                "Cerveja",
-                "Energético",
-                "Vinho",
-                "Destilado",
-                "Outro"
-        );
+        campoCategoria.getItems().addAll(Categoria.labels());
         campoCategoria.setPromptText("Selecione uma categoria");
         campoCategoria.setMaxWidth(Double.MAX_VALUE);
 
@@ -199,7 +191,7 @@ public class CadastroBebidaView {
         if (edicao) {
             campoNome.setText(bebidaExistente.getNome());
             campoMarca.setText(bebidaExistente.getMarca());
-            campoCategoria.setValue(bebidaExistente.getCategoria());
+            campoCategoria.setValue(bebidaExistente.getCategoria().getLabel());
             campoPreco.setText(precoTexto(bebidaExistente.getPreco()));
             campoQuantidade.setText(String.valueOf(bebidaExistente.getEstoque()));
             campoValidade.setValue(bebidaExistente.getValidade());
@@ -215,7 +207,7 @@ public class CadastroBebidaView {
 
         String nome = campoNome.getText().trim();
         String marca = campoMarca.getText().trim();
-        String categoria = campoCategoria.getValue();
+        Categoria categoria = Categoria.porLabel(campoCategoria.getValue());
         BigDecimal preco = parsePreco(campoPreco.getText());
         int quantidade = parseInteiro(campoQuantidade.getText());
         LocalDate validade = campoValidade.getValue();

@@ -129,14 +129,15 @@ public class BebidasView {
 
     private boolean atende(Bebida bebida, String texto, String categoria) {
         boolean okCategoria = categoria == null || "Todos".equals(categoria)
-                || categoria.equals(bebida.getCategoria());
+                || categoria.equals(bebida.getCategoria().getLabel());
 
         String busca = texto == null ? "" : texto.trim().toLowerCase();
         if (busca.isEmpty()) {
             return okCategoria;
         }
 
-        String alvo = (bebida.getNome() + " " + bebida.getMarca() + " " + bebida.getCategoria())
+        String alvo = (bebida.getNome() + " " + bebida.getMarca() + " "
+                + bebida.getCategoria().getLabel())
                 .toLowerCase();
         return okCategoria && alvo.contains(busca);
     }
@@ -159,7 +160,7 @@ public class BebidasView {
         colNome.setPrefWidth(220);
 
         TableColumn<Bebida, String> colCategoria = new TableColumn<>("Categoria");
-        colCategoria.setCellValueFactory(d -> new ReadOnlyStringWrapper(d.getValue().getCategoria()));
+        colCategoria.setCellValueFactory(d -> new ReadOnlyStringWrapper(d.getValue().getCategoria().getLabel()));
         colCategoria.setMinWidth(110);
 
         TableColumn<Bebida, String> colMarca = new TableColumn<>("Marca");
