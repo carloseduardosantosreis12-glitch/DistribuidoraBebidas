@@ -50,6 +50,10 @@ public class MainLayout {
                 sidebar.setActive(item);
                 conteudo.setContent(novoCadastro());
             }
+            case BEBIDAS -> {
+                sidebar.setActive(item);
+                conteudo.setContent(novoBebidas());
+            }
             case RELATORIOS -> {
                 sidebar.setActive(item);
                 conteudo.setContent(novoRelatorio());
@@ -58,13 +62,23 @@ public class MainLayout {
                 sidebar.setActive(item);
                 conteudo.setContent(novaConfiguracao());
             }
-            case BEBIDAS, VENDAS -> {
+            case VENDAS -> {
             }
         }
     }
 
     private Node novoDashboard() {
-        return new DashboardView().getRoot();
+        return new DashboardView(
+                () -> navegar(Sidebar.Item.CADASTRAR),
+                () -> navegar(Sidebar.Item.BEBIDAS)
+        ).getRoot();
+    }
+
+    private Node novoBebidas() {
+        return new BebidasView(
+                () -> navegar(Sidebar.Item.CADASTRAR),
+                mensagem -> Toast.mostrar(camadaToast, mensagem)
+        ).getRoot();
     }
 
     private Node novoCadastro() {

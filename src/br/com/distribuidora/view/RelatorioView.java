@@ -3,6 +3,7 @@ package br.com.distribuidora.view;
 import br.com.distribuidora.model.Bebida;
 import br.com.distribuidora.repository.ConfiguracaoStore;
 import br.com.distribuidora.repository.EstoqueRepository;
+import br.com.distribuidora.util.Formatadores;
 import br.com.distribuidora.view.components.PageHeader;
 import br.com.distribuidora.view.components.StatCard;
 import br.com.distribuidora.view.components.StatusBadge;
@@ -772,7 +773,7 @@ public class RelatorioView {
     }
 
     private String formatarValor(BigDecimal valor) {
-        return config.getMoeda() + " " + String.format("%.2f", valor).replace('.', ',');
+        return Formatadores.moeda(config.getMoeda(), valor);
     }
 
     // =========================

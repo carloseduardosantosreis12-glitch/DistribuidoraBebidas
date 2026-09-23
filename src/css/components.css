@@ -256,11 +256,41 @@
 }
 
 .btn-icon {
-    -fx-min-width: 32;
-    -fx-pref-width: 32;
-    -fx-min-height: 32;
-    -fx-pref-height: 32;
+    -fx-min-width: 34;
+    -fx-pref-width: 34;
+    -fx-min-height: 34;
+    -fx-pref-height: 34;
     -fx-padding: 0;
+    -fx-background-color: -bm-neutral;
+    -fx-background-radius: 8;
+}
+
+.btn-icon .ikonli-font-icon {
+    -fx-icon-color: -bm-text-muted;
+}
+
+.btn-icon:hover {
+    -fx-background-color: derive(-bm-neutral, -8%);
+}
+
+.btn-danger-icon {
+    -fx-background-color: -bm-danger-bg;
+}
+
+.btn-danger-icon .ikonli-font-icon {
+    -fx-icon-color: -bm-danger;
+}
+
+.btn-danger-icon:hover {
+    -fx-background-color: -bm-danger;
+}
+
+.btn-danger-icon:hover .ikonli-font-icon {
+    -fx-icon-color: white;
+}
+
+.table-placeholder-icon {
+    -fx-icon-color: -bm-border-strong;
 }
 
 .button:disabled {
